@@ -15,22 +15,23 @@
  */
 package org.springsource.restbucks;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.Locale;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.client.LinkDiscoverer;
 import org.springframework.hateoas.client.LinkDiscoverers;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcConfigurer;
 import org.springframework.web.context.WebApplicationContext;
 
 import lombok.RequiredArgsConstructor;
@@ -41,19 +42,29 @@ import lombok.RequiredArgsConstructor;
  * @author Oliver Gierke
  */
 @SpringBootTest
+@ExtendWith(RestDocumentationExtension.class)
+@AutoConfigureMockMvc
+@AutoConfigureRestDocs(outputDir = "target/generated-snippets", uriHost = "api.example.com")
 public abstract class AbstractWebIntegrationTest {
 
 	@Autowired WebApplicationContext context;
 	@Autowired LinkDiscoverers links;
 
 	protected MockMvc mvc;
+	protected DocumentationFlow flow;
 
 	@BeforeEach
-	void setUp() {
+	public void setUp() {
 
-		mvc = MockMvcBuilders.webAppContextSetup(context).//
-				defaultRequest(MockMvcRequestBuilders.get("/").locale(Locale.US)).//
-				build();
+		MockMvcConfigurer documentationConfiguration = documentationConfiguration(this.restDocumentation)//
+				.uris().withHost("api.example.com").withPort(80);
+
+		this.mvc = MockMvcBuilders.webAppContextSetup(context)//
+				.defaultRequest(MockMvcRequestBuilders.get("/").locale(Locale.US))//
+				.apply(documentationConfiguration)//
+				.build();
+
+		this.flow = DocumentationFlow.NONE;
 	}
 
 	/**
