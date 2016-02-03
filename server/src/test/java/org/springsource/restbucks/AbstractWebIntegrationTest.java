@@ -16,16 +16,22 @@
 package org.springsource.restbucks;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
+
+import lombok.RequiredArgsConstructor;
 
 import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.client.LinkDiscoverer;
 import org.springframework.hateoas.client.LinkDiscoverers;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -33,27 +39,30 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * Base class to derive concrete web test classes from.
  *
  * @author Oliver Gierke
  */
 @SpringBootTest
+@ExtendWith(RestDocumentationExtension.class)
 public abstract class AbstractWebIntegrationTest {
 
 	@Autowired WebApplicationContext context;
 	@Autowired LinkDiscoverers links;
 
 	protected MockMvc mvc;
+	protected DocumentationFlow flow;
 
 	@BeforeEach
-	void setUp() {
+	void setUp(RestDocumentationContextProvider restDocumentation) {
 
-		mvc = MockMvcBuilders.webAppContextSetup(context).//
-				defaultRequest(MockMvcRequestBuilders.get("/").locale(Locale.US)).//
-				build();
+		mvc = MockMvcBuilders.webAppContextSetup(context) //
+				.apply(documentationConfiguration(restDocumentation)) //
+				.defaultRequest(MockMvcRequestBuilders.get("/").locale(Locale.US)) //
+				.build();
+
+		this.flow = DocumentationFlow.NONE;
 	}
 
 	/**

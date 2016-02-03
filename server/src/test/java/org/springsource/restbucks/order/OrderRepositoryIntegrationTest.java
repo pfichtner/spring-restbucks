@@ -15,9 +15,9 @@
  */
 package org.springsource.restbucks.order;
 
-import static org.springsource.restbucks.order.OrderTestUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springsource.restbucks.order.Order.Status.*;
+import static org.springsource.restbucks.order.OrderTestUtils.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import org.springsource.restbucks.AbstractIntegrationTest;
 
 /**
  * Integration tests for Spring Data based {@link OrderRepository}.
- * 
+ *
  * @author Oliver Gierke
  */
 class OrderRepositoryIntegrationTest extends AbstractIntegrationTest {
