@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.client.LinkDiscoverer;
@@ -29,9 +31,6 @@ import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcConfigurer;
 import org.springframework.web.context.WebApplicationContext;
 
 import lombok.RequiredArgsConstructor;
@@ -50,20 +49,11 @@ public abstract class AbstractWebIntegrationTest {
 	@Autowired WebApplicationContext context;
 	@Autowired LinkDiscoverers links;
 
-	protected MockMvc mvc;
+	@Autowired protected MockMvc mvc;
 	protected DocumentationFlow flow;
 
 	@BeforeEach
 	public void setUp() {
-
-		MockMvcConfigurer documentationConfiguration = documentationConfiguration(this.restDocumentation)//
-				.uris().withHost("api.example.com").withPort(80);
-
-		this.mvc = MockMvcBuilders.webAppContextSetup(context)//
-				.defaultRequest(MockMvcRequestBuilders.get("/").locale(Locale.US))//
-				.apply(documentationConfiguration)//
-				.build();
-
 		this.flow = DocumentationFlow.NONE;
 	}
 
