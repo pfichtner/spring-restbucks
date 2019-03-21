@@ -132,7 +132,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				.andExpect(status().isOk())//
 				.andExpect(linkWithRelIsPresent(ORDERS_REL))//
 				.andDo(flow.documentUnmasked("access-api",
-						relaxedLinks(linkWithRel(ORDERS_REL).description("Pointing to the orders resource."))))//
+						relaxedLinks(linkWithRel(ORDERS_REL.value()).description("Pointing to the orders resource."))))//
 				.andReturn().getResponse();
 
 		return response;
@@ -163,7 +163,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				.andExpect(status().isCreated())//
 				.andExpect(header().string("Location", is(notNullValue())))//
 				.andDo(flow.document("create-order",
-						relaxedLinks(linkWithRel(PAYMENT_REL).description("A link pointing to the payment resource."))))//
+						relaxedLinks(linkWithRel(PAYMENT_REL.value()).description("A link pointing to the payment resource."))))//
 				.andReturn().getResponse();
 	}
 
@@ -214,7 +214,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				andExpect(linkWithRelIsPresent(UPDATE_REL)). //
 				andExpect(linkWithRelIsPresent(PAYMENT_REL)).//
 				andDo(flow.document("access-order",
-						relaxedLinks(linkWithRel(PAYMENT_REL).description("A link pointing to the payment resource."))))
+						relaxedLinks(linkWithRel(PAYMENT_REL.value()).description("A link pointing to the payment resource."))))
 				. //
 				andReturn().getResponse();
 	}
@@ -250,7 +250,8 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				.andDo(flow.document("trigger-payment",
 						relaxedResponseFields(fieldWithPath("amount").description("The amount paid."),
 								fieldWithPath("creditCard").description("Information about the credit card used.")),
-						relaxedLinks(linkWithRel(ORDER_REL).description("Pointing back to the order to poll for updates."))))//
+						relaxedLinks(
+								linkWithRel(ORDER_REL.value()).description("Pointing back to the order to poll for updates."))))//
 				.andReturn().getResponse();
 
 		LOG.info("Payment triggered…");
@@ -325,7 +326,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				// One more request for documentation purposes
 				mvc.perform(get(orderLink.expand().getHref()))//
 						.andDo(flow.document("order-prepared",
-								relaxedLinks(linkWithRel(RECEIPT_REL).description("Pointing to a receipt."))));
+								relaxedLinks(linkWithRel(RECEIPT_REL.value()).description("Pointing to a receipt."))));
 			}
 
 		} while (!receiptLink.isPresent());
