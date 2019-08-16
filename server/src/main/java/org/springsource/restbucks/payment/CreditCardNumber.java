@@ -17,8 +17,11 @@ package org.springsource.restbucks.payment;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.validation.constraints.Pattern;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Value object to represent a {@link CreditCardNumber}.
@@ -27,15 +30,14 @@ import lombok.Data;
  */
 @Data
 @Embeddable
+@NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
 public class CreditCardNumber {
 
 	private static final String regex = "[0-9]{16}";
 
-	private final @Column(unique = true) String number;
-
-	protected CreditCardNumber() {
-		this.number = null;
-	}
+	@Column(unique = true) //
+	@Pattern(regexp = "[0-9]{16}") //
+	private final String number;
 
 	/**
 	 * Creates a new {@link CreditCardNumber}.

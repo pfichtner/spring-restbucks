@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 
 import javax.money.MonetaryAmount;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.data.repository.support.DomainClassConverter;
 import org.springframework.hateoas.EntityModel;

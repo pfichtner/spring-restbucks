@@ -19,6 +19,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.hateoas.UriTemplate;
+import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.hateoas.mediatype.hal.CurieProvider;
 import org.springframework.hateoas.mediatype.hal.DefaultCurieProvider;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -33,12 +35,13 @@ import org.springframework.scheduling.annotation.EnableAsync;
  */
 @SpringBootApplication
 @EnableAsync
+@EnableHypermediaSupport(type = { HypermediaType.HAL, HypermediaType.HAL_FORMS })
 public class Restbucks {
 
 	public static String CURIE_NAMESPACE = "restbucks";
 
 	public @Bean CurieProvider curieProvider() {
-		return new DefaultCurieProvider(CURIE_NAMESPACE, UriTemplate.of("/docs/index.html#{rel}"));
+		return new DefaultCurieProvider(CURIE_NAMESPACE, UriTemplate.of("/docs/{rel}"));
 	}
 
 	/**
