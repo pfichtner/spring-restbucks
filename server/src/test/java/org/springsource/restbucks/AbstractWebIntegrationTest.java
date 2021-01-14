@@ -86,10 +86,6 @@ public abstract class AbstractWebIntegrationTest {
 		private final LinkRelation rel;
 		private final boolean present;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.test.web.servlet.ResultMatcher#match(org.springframework.test.web.servlet.MvcResult)
-		 */
 		@Override
 		public void match(MvcResult result) throws Exception {
 

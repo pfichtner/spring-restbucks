@@ -42,10 +42,6 @@ class PaymentServiceImpl implements PaymentService {
 	private final @NonNull PaymentRepository paymentRepository;
 	private final @NonNull OrderRepository orderRepository;
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springsource.restbucks.payment.PaymentService#pay(org.springsource.restbucks.order.Order, org.springsource.restbucks.payment.Payment)
-	 */
 	@Override
 	public CreditCardPayment pay(Order order, CreditCardNumber creditCardNumber) {
 
@@ -75,20 +71,12 @@ class PaymentServiceImpl implements PaymentService {
 		return payment;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springsource.restbucks.payment.PaymentService#getPaymentFor(org.springsource.restbucks.order.Order)
-	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<Payment> getPaymentFor(Order order) {
 		return paymentRepository.findByOrder(order);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springsource.restbucks.payment.PaymentService#takeReceiptFor(org.springsource.restbucks.order.Order)
-	 */
 	@Override
 	public Optional<Receipt> takeReceiptFor(Order order) {
 

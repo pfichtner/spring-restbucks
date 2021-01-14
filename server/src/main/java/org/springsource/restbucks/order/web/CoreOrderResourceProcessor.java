@@ -39,10 +39,6 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 
 	private final @NonNull EntityLinks entityLinks;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.hateoas.server.RepresentationModelProcessor#process(org.springframework.hateoas.RepresentationModel)
-	 */
 	@Override
 	public EntityModel<Order> process(EntityModel<Order> resource) {
 

@@ -141,10 +141,6 @@ class JacksonCustomizations {
 				super(MonetaryAmount.class);
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.ser.std.StdSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)
-			 */
 			@Override
 			public void serialize(MonetaryAmount value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 
@@ -155,10 +151,6 @@ class JacksonCustomizations {
 				}
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see org.springframework.data.rest.webmvc.json.JsonSchemaPropertyCustomizer#customize(org.springframework.data.rest.webmvc.json.JsonSchema.JsonSchemaProperty, org.springframework.data.util.TypeInformation)
-			 */
 			@Override
 			public JsonSchemaProperty customize(JsonSchemaProperty property, TypeInformation<?> type) {
 				return property.withType(String.class).withPattern(MONEY_PATTERN);
@@ -167,28 +159,16 @@ class JacksonCustomizations {
 
 		static class MoneyInstantiator extends ValueInstantiator {
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.deser.ValueInstantiator#getValueTypeDesc()
-			 */
 			@Override
 			public String getValueTypeDesc() {
 				return MonetaryAmount.class.toString();
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.deser.ValueInstantiator#canCreateFromString()
-			 */
 			@Override
 			public boolean canCreateFromString() {
 				return true;
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.deser.ValueInstantiator#createFromString(com.fasterxml.jackson.databind.DeserializationContext, java.lang.String)
-			 */
 			@Override
 			public Object createFromString(DeserializationContext context, String value) throws IOException {
 				return Money.parse(value, MonetaryFormats.getAmountFormat(LocaleContextHolder.getLocale()));

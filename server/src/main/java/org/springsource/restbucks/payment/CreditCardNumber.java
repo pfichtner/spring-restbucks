@@ -54,10 +54,6 @@ public class CreditCardNumber {
 		this.number = number;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return number;
@@ -70,6 +66,6 @@ public class CreditCardNumber {
 	 * @return
 	 */
 	public static boolean isValid(String number) {
-		return number == null ? false : PATTERN.matcher(number).matches();
+		return number != null && PATTERN.matcher(number).matches();
 	}
 }
