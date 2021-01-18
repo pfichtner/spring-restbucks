@@ -15,13 +15,12 @@
  */
 package org.springsource.restbucks.payment.web;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springsource.restbucks.JacksonTestUtils;
 import org.springsource.restbucks.payment.CreditCard;
@@ -44,15 +43,15 @@ class CreditCardMarshallingTest {
 
 	static final String REFERENCE = "{\"number\":\"1234123412341234\",\"cardHolderName\":\"Oliver Gierke\",\"expirationDate\":[2013,11,1]}";
 
-	ObjectMapper mapper = new ObjectMapper();
+	ObjectMapper mapper = objectMapper();
 
-	@BeforeEach
-	void setUp() {
-
+	ObjectMapper objectMapper() {
+		ObjectMapper mapper = new ObjectMapper();
 		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		mapper.registerModule(new JavaTimeModule());
 		mapper.registerModule(new ParameterNamesModule());
 		mapper.registerModules(JacksonTestUtils.getModules());
+		return mapper;
 	}
 
 	@Test

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.Module;
 public class JacksonTestUtils extends JacksonCustomizations {
 
 	public static Set<Module> getModules() {
-		return new HashSet<>(Arrays.asList(new RestbucksModule(), new MoneyModule()));
+		JacksonCustomizations configuration = new JacksonCustomizations();
+		return new HashSet<>(Arrays.asList(configuration.restbucksModule(), configuration.moneyModule()));
 	}
 }
