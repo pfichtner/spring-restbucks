@@ -48,7 +48,7 @@ class PaymentOrderModelProcessorUnitTest {
 	PaymentLinks paymentLinks;
 
 	PaymentOrderModelProcessor processor;
-	Link paymentLink, receiptLink;
+	Link paymentLink, customerCardLink, receiptLink;
 
 	@BeforeEach
 	void setUp() {
@@ -59,9 +59,11 @@ class PaymentOrderModelProcessorUnitTest {
 
 		paymentLink = new Link("payment", PaymentLinks.PAYMENT_REL);
 		receiptLink = new Link("receipt", PaymentLinks.RECEIPT_REL);
+		customerCardLink = new Link("customercard", PaymentLinks.CUSTOMERCARD_REL);
 
 		processor = new PaymentOrderModelProcessor(paymentLinks);
 		when(paymentLinks.getPaymentLink(Mockito.any(Order.class))).thenReturn(paymentLink);
+		when(paymentLinks.getCustomerCardLink(Mockito.any(Order.class))).thenReturn(customerCardLink);
 		when(paymentLinks.getReceiptLink(Mockito.any(Order.class))).thenReturn(receiptLink);
 	}
 
@@ -82,12 +84,13 @@ class PaymentOrderModelProcessorUnitTest {
 	}
 
 	@Test
-	void addsPaymentLinkForFreshOrder() {
+	void addsPaymentAndCustomerCardLinksForFreshOrder() {
 
 		Order order = OrderTestUtils.createExistingOrder();
 
 		EntityModel<Order> resource = processor.process(new EntityModel<Order>(order));
 		assertThat(resource.getLink(PaymentLinks.PAYMENT_REL)).hasValue(paymentLink);
+		assertThat(resource.getLink(PaymentLinks.CUSTOMERCARD_REL)).hasValue(customerCardLink);
 	}
 
 	@Test
