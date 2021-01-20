@@ -15,9 +15,10 @@
  */
 package org.springsource.restbucks.payment.web;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.springsource.restbucks.order.Order.Status.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
+import static org.springsource.restbucks.order.Order.Status.READY;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -48,7 +49,7 @@ class PaymentOrderModelProcessorUnitTest {
 	PaymentLinks paymentLinks;
 
 	PaymentOrderModelProcessor processor;
-	Link paymentLink, customerCardLink, receiptLink;
+	Link paymentLink, receiptLink;
 
 	@BeforeEach
 	void setUp() {
@@ -59,11 +60,9 @@ class PaymentOrderModelProcessorUnitTest {
 
 		paymentLink = new Link("payment", PaymentLinks.PAYMENT_REL);
 		receiptLink = new Link("receipt", PaymentLinks.RECEIPT_REL);
-		customerCardLink = new Link("customercard", PaymentLinks.CUSTOMERCARD_REL);
 
 		processor = new PaymentOrderModelProcessor(paymentLinks);
 		when(paymentLinks.getPaymentLink(Mockito.any(Order.class))).thenReturn(paymentLink);
-		when(paymentLinks.getCustomerCardLink(Mockito.any(Order.class))).thenReturn(customerCardLink);
 		when(paymentLinks.getReceiptLink(Mockito.any(Order.class))).thenReturn(receiptLink);
 	}
 
@@ -84,13 +83,12 @@ class PaymentOrderModelProcessorUnitTest {
 	}
 
 	@Test
-	void addsPaymentAndCustomerCardLinksForFreshOrder() {
+	void addsPaymentLinkForFreshOrder() {
 
 		Order order = OrderTestUtils.createExistingOrder();
 
 		EntityModel<Order> resource = processor.process(new EntityModel<Order>(order));
 		assertThat(resource.getLink(PaymentLinks.PAYMENT_REL)).hasValue(paymentLink);
-		assertThat(resource.getLink(PaymentLinks.CUSTOMERCARD_REL)).hasValue(customerCardLink);
 	}
 
 	@Test
