@@ -41,7 +41,6 @@ class PaymentLinks {
 	static final String RECEIPT = "/receipt";
 	static final LinkRelation PAYMENT_REL = HalLinkRelation.curied(Restbucks.CURIE_NAMESPACE, "payment");
 	static final LinkRelation RECEIPT_REL = HalLinkRelation.curied(Restbucks.CURIE_NAMESPACE, "receipt");
-	static final LinkRelation CUSTOMERCARD_REL = HalLinkRelation.curied(Restbucks.CURIE_NAMESPACE, "customercard");
 
 	private final @Getter TypedEntityLinks<Order> orderLinks;
 
@@ -67,16 +66,6 @@ class PaymentLinks {
 		return orderLinks.linkForItemResource(order).slash(PAYMENT).withRel(PAYMENT_REL);
 	}
 	
-	/**
-	 * Returns the {@link Link} to point to the {@link Payment} for the given {@link Order}.
-	 *
-	 * @param order must not be {@literal null}.
-	 * @return
-	 */
-	Link getCustomerCardLink(Order order) {
-		return orderLinks.linkForItemResource(order).slash(PAYMENT).withRel(CUSTOMERCARD_REL);
-	}
-
 	/**
 	 * Returns the {@link Link} to the {@link Receipt} of the given {@link Order}.
 	 *

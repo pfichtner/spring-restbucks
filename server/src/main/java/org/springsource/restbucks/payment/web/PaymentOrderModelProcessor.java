@@ -45,7 +45,6 @@ class PaymentOrderModelProcessor implements RepresentationModelProcessor<EntityM
 
 		if (!order.isPaid()) {
 			resource.add(paymentLinks.getPaymentLink(order));
-			resource.add(paymentLinks.getCustomerCardLink(order));
 		}
 
 		if (order.isReady()) {
