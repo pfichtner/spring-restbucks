@@ -27,7 +27,7 @@ import javax.persistence.Embeddable;
 /**
  * Value object to represent a {@link CustomerCardNumber}.
  *
- * @author Oliver Gierke
+ * @author Peter Fichtner
  */
 @Data
 @Embeddable
