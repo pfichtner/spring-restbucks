@@ -33,19 +33,19 @@ import lombok.RequiredArgsConstructor;
 @Service
 @Transactional
 @RequiredArgsConstructor
-class CustomerCardImpl implements CustomerCardService {
+class CustomerCardServiceImpl implements CustomerCardService {
 
-	private final @NonNull CustomerCardScanRepository creditCardRepository;
+	private final @NonNull CustomerCardScanRepository customerCardScanRepository;
 	private final @NonNull OrderRepository orderRepository;
 
 
 	@Override
 	public CustomerCardScan scan(Order order, CustomerCardNumber customerCardNumber) {
-		return creditCardRepository.save(new CustomerCardScan(new CustomerCard(customerCardNumber), order));
+		return customerCardScanRepository.save(new CustomerCardScan(new CustomerCard(customerCardNumber), order));
 	}
 
 	@Override
 	public Optional<CustomerCardScan> getScanFor(Order order) {
-		return creditCardRepository.findByOrder(order);
+		return customerCardScanRepository.findByOrder(order);
 	}
 }
