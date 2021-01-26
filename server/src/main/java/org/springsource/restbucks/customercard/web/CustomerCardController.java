@@ -15,6 +15,7 @@
  */
 package org.springsource.restbucks.customercard.web;
 
+import org.springframework.data.repository.support.DomainClassConverter;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springsource.restbucks.customercard.CustomerCard;
 import org.springsource.restbucks.customercard.CustomerCardNumber;
+import org.springsource.restbucks.customercard.CustomerCardScan;
 import org.springsource.restbucks.customercard.CustomerCardService;
 import org.springsource.restbucks.order.Order;
-import org.springsource.restbucks.payment.Payment;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
@@ -38,19 +39,28 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 /**
- * Spring MVC controller to handle customer card scans for an {@link Order}.
+ * Spring MVC controller to handle customer card scans for an {@link CustomerCardScan}.
  *
  * @author Peter Fichtner
  */
 @Controller
 @RequestMapping("/orders/{id}")
-@ExposesResourceFor(Payment.class)
+//@ExposesResourceFor(CustomerCardScan.class)
 @RequiredArgsConstructor
 class CustomerCardController {
 
 	private final @NonNull CustomerCardService customerCardService;
 	private final @NonNull CustomerCardLinks customerCardLinks;
 
+	/**
+	 * Accepts a customer card scan for an {@link Order}
+	 *
+	 * @param order the {@link Order} to process the customer card scan for. Retrieved from the path variable and converted into an
+	 *          {@link Order} instance by Spring Data's {@link DomainClassConverter}. Will be {@literal null} in case no
+	 *          {@link Order} with the given id could be found.
+	 * @param number the {@link CustomerCardNumber} unmarshaled from the request payload.
+	 * @return
+	 */
 	@PutMapping(path = CustomerCardLinks.SCAN_CUSTOMER_CARD)
 	ResponseEntity<?> submitScan(@PathVariable("id") Order order, @RequestBody CustomerCardScanForm form) {
 
