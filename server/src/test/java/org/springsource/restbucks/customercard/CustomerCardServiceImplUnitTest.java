@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springsource.restbucks.order.OrderRepository;
 
 /**
- * Unit tests for {@link CustomerCardImpl}.
+ * Unit tests for {@link CustomerCardServiceImpl}.
  * 
  * @author Peter Fichtner
  */
@@ -43,21 +43,21 @@ class CustomerCardServiceImplUnitTest {
 
 	@BeforeEach
 	void setUp() {
-		this.customerCardService = new CustomerCardImpl(customerCardScanRepository, orderRepository);
+		this.customerCardService = new CustomerCardServiceImpl(customerCardScanRepository, orderRepository);
 	}
 
 	@Test
 	void rejectsNullPaymentRepository() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> new CustomerCardImpl(customerCardScanRepository, null));
+				.isThrownBy(() -> new CustomerCardServiceImpl(customerCardScanRepository, null));
 	}
 
 	@Test
-	void rejectsNullCreditCardRepository() {
+	void rejectsNullCustomerCardRepository() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> new CustomerCardImpl(null, orderRepository));
+				.isThrownBy(() -> new CustomerCardServiceImpl(null, orderRepository));
 	}
 
 }

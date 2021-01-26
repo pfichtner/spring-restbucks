@@ -43,7 +43,7 @@ class CustomerCardNumberUnitTest {
 	}
 
 	@Test
-	void createsValidCreditCardNumber() {
+	void createsValidCustomerCardNumber() {
 		new CustomerCardNumber("AAFF123456");
 	}
 }
