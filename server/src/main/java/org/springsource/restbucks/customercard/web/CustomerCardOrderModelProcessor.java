@@ -24,9 +24,9 @@ import org.springframework.stereotype.Component;
 import org.springsource.restbucks.order.Order;
 
 /**
- * {@link ResourceProcessor} to enrich {@link Order} {@link Resource}s with links to the {@link PaymentController}.
+ * {@link ResourceProcessor} to enrich {@link Order} {@link Resource}s with links to the {@link CustomerCardController}.
  * 
- * @author Oliver Gierke
+ * @author Peter Fichtner
  */
 @Component
 @RequiredArgsConstructor
