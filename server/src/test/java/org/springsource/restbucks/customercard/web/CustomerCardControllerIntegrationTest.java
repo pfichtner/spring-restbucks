@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.RepresentationModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springsource.restbucks.customercard.CustomerCardNumber;
 import org.springsource.restbucks.customercard.web.CustomerCardController.CustomerCardScanForm;
+import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.Order.Status;
 import org.springsource.restbucks.order.OrderRepository;
 
@@ -36,23 +38,37 @@ import org.springsource.restbucks.order.OrderRepository;
 @SpringBootTest
 class CustomerCardControllerIntegrationTest {
 
-	@Autowired CustomerCardController controller;
-	@Autowired OrderRepository orders;
+	@Autowired
+	CustomerCardController controller;
+	@Autowired
+	OrderRepository orders;
+
+	Order order;
+	ResponseEntity<?> entity;
 
 	@Test
 	void processesCustomerCardScan() throws Exception {
+		givenAnOrderWithPaymentExpected();
+		whenCustomerCardIsScaned(order);
+		thenEntityHasLocationHeader();
+		andBodyHasLinkTo("order");
+	}
 
-		// Given
-		var order = orders.findByStatus(Status.PAYMENT_EXPECTED).get(0);
+	void givenAnOrderWithPaymentExpected() {
+		order = orders.findByStatus(Status.PAYMENT_EXPECTED).get(0);
+	}
 
-		// When
-		var model = new CustomerCardScanForm(new CustomerCardNumber("AAFF123456"));
-		var entity = controller.submitScan(order, model);
+	void whenCustomerCardIsScaned(Order order) {
+		CustomerCardScanForm model = new CustomerCardScanForm(new CustomerCardNumber("AAFF123456"));
+		entity = controller.submitScan(order, model);
+	}
 
-		// Then
+	void thenEntityHasLocationHeader() {
 		assertThat(entity.getHeaders().getLocation()).isNotNull();
-		assertThat(entity.getBody()).isInstanceOfSatisfying(RepresentationModel.class, it -> {
-			assertThat(it.hasLink("order")).isTrue();
-		});
+	}
+
+	void andBodyHasLinkTo(String rel) {
+		assertThat(entity.getBody()).isInstanceOfSatisfying(RepresentationModel.class,
+				it -> assertThat(it.hasLink(rel)).isTrue());
 	}
 }
