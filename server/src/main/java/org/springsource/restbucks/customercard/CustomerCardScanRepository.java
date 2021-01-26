@@ -18,6 +18,7 @@ package org.springsource.restbucks.customercard;
 import java.util.Optional;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springsource.restbucks.order.Order;
 
 /**
@@ -25,6 +26,7 @@ import org.springsource.restbucks.order.Order;
  * 
  * @author Peter Fichtner
  */
+@RepositoryRestResource
 interface CustomerCardScanRepository extends PagingAndSortingRepository<CustomerCardScan, Long> {
 
 	/**
