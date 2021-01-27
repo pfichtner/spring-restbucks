@@ -15,11 +15,8 @@
  */
 package org.springsource.restbucks.customercard;
 
-import java.util.Optional;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.OrderRepository;
 
 import lombok.NonNull;
@@ -38,14 +35,4 @@ class CustomerCardServiceImpl implements CustomerCardService {
 	private final @NonNull CustomerCardScanRepository customerCardScanRepository;
 	private final @NonNull OrderRepository orderRepository;
 
-
-	@Override
-	public CustomerCardScan scan(Order order, CustomerCardNumber customerCardNumber) {
-		return customerCardScanRepository.save(new CustomerCardScan(new CustomerCard(customerCardNumber), order));
-	}
-
-	@Override
-	public Optional<CustomerCardScan> getScanFor(Order order) {
-		return customerCardScanRepository.findByOrder(order);
-	}
 }

@@ -17,7 +17,6 @@ package org.springsource.restbucks.customercard.web;
 
 import org.springframework.data.repository.support.DomainClassConverter;
 import org.springframework.hateoas.RepresentationModel;
-import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,18 +62,7 @@ class CustomerCardController {
 	 */
 	@PutMapping(path = CustomerCardLinks.SCAN_CUSTOMER_CARD)
 	ResponseEntity<?> submitScan(@PathVariable("id") Order order, @RequestBody CustomerCardScanForm form) {
-
-		if (order == null) {
-			return ResponseEntity.notFound().build();
-		}
-
-		var scan = customerCardService.scan(order, form.getNumber());
-		var model = new ScanModel(scan.getCustomerCard()) //
-				.add(customerCardLinks.getOrderLinks().linkToItemResource(order));
-
-		var paymentUri = customerCardLinks.getScanCustomerCardLink(order).toUri();
-
-		return ResponseEntity.created(paymentUri).body(model);
+		throw new UnsupportedOperationException("not implemented");
 	}
 
 

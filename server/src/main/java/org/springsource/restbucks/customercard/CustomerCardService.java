@@ -15,19 +15,11 @@
  */
 package org.springsource.restbucks.customercard;
 
-import java.util.Optional;
-
-import org.springsource.restbucks.order.Order;
-
 /**
  * Interface to collect customer card services.
  * 
  * @author Peter Fichtner
  */
 public interface CustomerCardService {
-
-	CustomerCardScan scan(Order order, CustomerCardNumber customerCardNumber);
-
-	Optional<CustomerCardScan> getScanFor(Order order);
 
 }
