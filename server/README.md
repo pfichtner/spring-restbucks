@@ -1,0 +1,1 @@
+In diesem branch sind die Domänenobjekte sowie die JPA Funktionalität bereits beinhaltet. Es fehlen die Tests, um die CustomerCard Story abschließen zu können. Beim Erstellen der/des Tests fällt auf, was sonst noch zu tun ist. 
