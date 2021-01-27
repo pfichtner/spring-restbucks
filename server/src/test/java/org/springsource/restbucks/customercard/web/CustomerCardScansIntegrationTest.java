@@ -15,27 +15,20 @@
  */
 package org.springsource.restbucks.customercard.web;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.hateoas.MediaTypes;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
 
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Integration tests modeling the hypermedia-driven interaction flow against the
+ * server implementation. Uses the Spring MVC integration test facilities
+ * introduced in 3.2. Implements the order process modeled in my presentation on
+ * Hypermedia design with Spring.
+ *
+ * @author Peter Fichtner
+ */
+@Slf4j
 class CustomerCardScansIntegrationTest extends AbstractWebIntegrationTest {
 
-	@Test
-	void exposesCustomerCardScansResourceViaRootResource() throws Exception {
-
-		mvc.perform(get("/")).//
-				andDo(MockMvcResultHandlers.print()).//
-				andExpect(status().isOk()). //
-				andExpect(content().contentTypeCompatibleWith(MediaTypes.HAL_JSON)). //
-				andExpect(jsonPath("$._links.restbucks:customerCardScans.href", notNullValue()));
-	}
 
 }

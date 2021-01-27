@@ -37,8 +37,8 @@ import lombok.Getter;
 @Component
 class CustomerCardLinks {
 
-	static final String SCAN_CUSTOMER_CARD = "/customercard";
-	static final LinkRelation SCAN_CUSTOMER_CARD_REL = HalLinkRelation.curied(Restbucks.CURIE_NAMESPACE,
+	static final String CUSTOMER_CARD = "/customercard";
+	static final LinkRelation CUSTOMER_CARD_REL = HalLinkRelation.curied(Restbucks.CURIE_NAMESPACE,
 			"customercard");
 
 	private final @Getter TypedEntityLinks<Order> orderLinks;
@@ -55,8 +55,8 @@ class CustomerCardLinks {
 		this.orderLinks = entityLinks.forType(Order::getId);
 	}
 
-	Link getScanCustomerCardLink(Order order) {
-		return orderLinks.linkForItemResource(order).slash(SCAN_CUSTOMER_CARD).withRel(SCAN_CUSTOMER_CARD_REL);
+	Link getCustomerCardLink(Order order) {
+		return orderLinks.linkForItemResource(order).slash(CUSTOMER_CARD).withRel(CUSTOMER_CARD_REL);
 	}
 
 }
