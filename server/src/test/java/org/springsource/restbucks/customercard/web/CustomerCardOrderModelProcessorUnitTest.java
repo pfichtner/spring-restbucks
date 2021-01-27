@@ -55,10 +55,10 @@ class CustomerCardOrderModelProcessorUnitTest {
 		ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
 		RequestContextHolder.setRequestAttributes(requestAttributes);
 
-		customerCardLink = new Link("customercard", CustomerCardLinks.SCAN_CUSTOMER_CARD_REL);
+		customerCardLink = new Link("customercard", CustomerCardLinks.CUSTOMER_CARD_REL);
 
 		processor = new CustomerCardOrderModelProcessor(customercardlinks);
-		when(customercardlinks.getScanCustomerCardLink(Mockito.any(Order.class))).thenReturn(customerCardLink);
+		when(customercardlinks.getCustomerCardLink(Mockito.any(Order.class))).thenReturn(customerCardLink);
 	}
 
 	@Test
@@ -67,7 +67,7 @@ class CustomerCardOrderModelProcessorUnitTest {
 		Order order = OrderTestUtils.createExistingOrder();
 
 		EntityModel<Order> resource = processor.process(new EntityModel<Order>(order));
-		assertThat(resource.getLink(CustomerCardLinks.SCAN_CUSTOMER_CARD_REL)).hasValue(customerCardLink);
+		assertThat(resource.getLink(CustomerCardLinks.CUSTOMER_CARD_REL)).hasValue(customerCardLink);
 	}
 
 }

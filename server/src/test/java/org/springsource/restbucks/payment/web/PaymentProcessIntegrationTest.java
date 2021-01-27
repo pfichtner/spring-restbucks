@@ -15,14 +15,18 @@
  */
 package org.springsource.restbucks.payment.web;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.file.Files;
 import java.util.Optional;
@@ -41,13 +45,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.PrintingResultHandler;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
 import org.springsource.restbucks.Restbucks;
 import org.springsource.restbucks.order.Order;
 
 import com.jayway.jsonpath.JsonPath;
+
+import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
 
 /**
  * Integration tests modeling the hypermedia-driven interaction flow against the
@@ -69,7 +74,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	private static final LinkRelation CANCEL_REL = BUILDER.relation("cancel");
 	private static final LinkRelation UPDATE_REL = BUILDER.relation("update");
 	private static final LinkRelation PAYMENT_REL = BUILDER.relation("payment");
-	private static final LinkRelation CUSTOMERCARD_REL = BUILDER.relation("customercard");
 
 	private static final String FIRST_ORDER_EXPRESSION = String.format("$._embedded.%s[0]", ORDERS_REL);
 
@@ -99,7 +103,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		MockHttpServletResponse response = accessRootResource();
 
 		response = createNewOrder(response);
-		response = scanCustomerCard(response);
 		response = triggerPayment(response);
 		response = pollUntilOrderHasReceiptLink(response);
 		response = takeReceipt(response);
@@ -215,42 +218,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				andExpect(linkWithRelIsPresent(CANCEL_REL)). //
 				andExpect(linkWithRelIsPresent(UPDATE_REL)). //
 				andExpect(linkWithRelIsPresent(PAYMENT_REL)). //
-				andExpect(linkWithRelIsPresent(CUSTOMERCARD_REL)). //
 				andReturn().getResponse();
-	}
-
-	private MockHttpServletResponse scanCustomerCard(MockHttpServletResponse response) throws Exception {
-
-		String content = response.getContentAsString();
-		LinkDiscoverer discoverer = getDiscovererFor(response);
-		Link customerCardLink = discoverer.findRequiredLinkWithRel(CUSTOMERCARD_REL, content);
-
-		LOG.info(String.format("Discovered customercard link pointing to %s…", customerCardLink));
-
-		assertThat(customerCardLink).isNotNull();
-
-		LOG.info("Triggering customer card scan…");
-
-		ResultActions action = mvc.perform(put(customerCardLink.getHref()) //
-				.content("{ \"number\" : \"AAFF123456\" }") //
-				.contentType(MediaType.APPLICATION_JSON) //
-				.accept(MediaTypes.HAL_JSON));
-
-		response = action.andExpect(status().isCreated()). //
-				andExpect(linkWithRelIsPresent(ORDER_REL)). //
-				andReturn().getResponse();
-
-		LOG.info("customer card scaned…");
-
-		// refetch the order resource, CUSTOMERCARD_REL still is existent (can be
-		// scanned multiple times, last card wins)
-		Link orderLink = getDiscovererFor(response).findRequiredLinkWithRel(ORDER_REL, response.getContentAsString());
-		response = mvc.perform(get(orderLink.expand().getHref())). //
-				andExpect(status().isOk()). // //
-				andExpect(linkWithRelIsPresent(CUSTOMERCARD_REL)). //
-				andReturn().getResponse(); //
-
-		return response;
 	}
 
 	/**

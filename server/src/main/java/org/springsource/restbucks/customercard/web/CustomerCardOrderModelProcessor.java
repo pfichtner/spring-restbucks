@@ -44,7 +44,7 @@ class CustomerCardOrderModelProcessor implements RepresentationModelProcessor<En
 		var order = resource.getContent();
 
 		if (!order.isPaid()) {
-			resource.add(customerCardLinks.getScanCustomerCardLink(order));
+			resource.add(customerCardLinks.getCustomerCardLink(order));
 		}
 
 		return resource;

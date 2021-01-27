@@ -15,15 +15,21 @@
  */
 package org.springsource.restbucks.customercard.web;
 
+import static org.springframework.http.ResponseEntity.created;
+import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.http.ResponseEntity.ok;
+
+import java.util.Optional;
+
 import org.springframework.data.repository.support.DomainClassConverter;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springsource.restbucks.customercard.CustomerCard;
 import org.springsource.restbucks.customercard.CustomerCardNumber;
 import org.springsource.restbucks.customercard.CustomerCardScan;
@@ -39,13 +45,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 /**
- * Spring MVC controller to handle customer card scans for an {@link CustomerCardScan}.
+ * Spring MVC controller to handle customer card scans for an
+ * {@link CustomerCardScan}.
  *
  * @author Peter Fichtner
  */
 @Controller
-@RequestMapping("/orders/{id}")
-//@ExposesResourceFor(CustomerCardScan.class)
+@ExposesResourceFor(CustomerCardScan.class)
 @RequiredArgsConstructor
 class CustomerCardController {
 
@@ -55,13 +61,16 @@ class CustomerCardController {
 	/**
 	 * Accepts a customer card scan for an {@link Order}
 	 *
-	 * @param order the {@link Order} to process the customer card scan for. Retrieved from the path variable and converted into an
-	 *          {@link Order} instance by Spring Data's {@link DomainClassConverter}. Will be {@literal null} in case no
-	 *          {@link Order} with the given id could be found.
-	 * @param number the {@link CustomerCardNumber} unmarshaled from the request payload.
+	 * @param order  the {@link Order} to process the customer card scan for.
+	 *               Retrieved from the path variable and converted into an
+	 *               {@link Order} instance by Spring Data's
+	 *               {@link DomainClassConverter}. Will be {@literal null} in case
+	 *               no {@link Order} with the given id could be found.
+	 * @param number the {@link CustomerCardNumber} unmarshaled from the request
+	 *               payload.
 	 * @return
 	 */
-	@PutMapping(path = CustomerCardLinks.SCAN_CUSTOMER_CARD)
+	@PutMapping(path = "/orders/{id}" + CustomerCardLinks.CUSTOMER_CARD)
 	ResponseEntity<?> submitScan(@PathVariable("id") Order order, @RequestBody CustomerCardScanForm form) {
 
 		if (order == null) {
@@ -72,11 +81,18 @@ class CustomerCardController {
 		var model = new ScanModel(scan.getCustomerCard()) //
 				.add(customerCardLinks.getOrderLinks().linkToItemResource(order));
 
-		var paymentUri = customerCardLinks.getScanCustomerCardLink(order).toUri();
+		var paymentUri = customerCardLinks.getCustomerCardLink(order).toUri();
 
-		return ResponseEntity.created(paymentUri).body(model);
+		return created(paymentUri).body(model);
 	}
 
+	@GetMapping(path = "/orders/{id}" + CustomerCardLinks.CUSTOMER_CARD)
+	ResponseEntity<?> get(@PathVariable("id") Order order) {
+
+		Optional<CustomerCardScan> customerCard = order == null ? Optional.empty()
+				: customerCardService.getScanFor(order);
+		return customerCard.isEmpty() ? notFound().build() : ok(customerCard);
+	}
 
 	/**
 	 * EntityModel implementation for scan results.
