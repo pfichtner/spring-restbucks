@@ -2,6 +2,17 @@ Als Kunde möchte ich Bestellungen auch noch stornieren können, wenn sie bereits 
 --> Stolperfalle (weil nicht in Storybeschreibung geklärt): Kann ich Bestellungen noch stornieren, wenn ich den Beleg abgeholt habe? (fachliche Antwort: Nein)
 --> Fachliche Frage (wird nicht berücksichtigt) Wie geschieht die Rückbuchung der Bezahlung? 
 
+
+
+
+
+---> findByLocation wäre noch eine schöne Anforderung
+
+
+
+
+
+
 Als Kunde möchte ich nach der Bestellung nach meiner RestBucks Kundenkarte befragt werden und diese einscannen lassen, damit ich die RestBucks Bonuspunkte sammeln kann. 
 -> Die Kundenkarte muss im Bestellprozess erfasst werden können
 ---> Neuer Link: "customercard" auf order resource
