@@ -30,7 +30,7 @@ import org.springsource.restbucks.order.Order;
 @Getter
 @EqualsAndHashCode
 @ToString
-public class OrderPaid {
+public class OrderPaid implements ExternalEvent {
 
 	private final long orderId;
 
