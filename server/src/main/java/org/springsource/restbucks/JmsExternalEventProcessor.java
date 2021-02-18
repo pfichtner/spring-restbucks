@@ -32,16 +32,6 @@ public class JmsExternalEventProcessor {
 
 	private final JmsTemplate jmsTemplate;
 
-	// hack into ApplicationEventMulticaster
-	// public @Bean(name =
-	// AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-	// ApplicationEventMulticaster applicationEventMulticaster() {
-	// SimpleApplicationEventMulticaster eventMulticaster = new
-	// SimpleApplicationEventMulticaster();
-	// eventMulticaster.setTaskExecutor(new SimpleAsyncTaskExecutor());
-	// return eventMulticaster;
-	// }
-
 	@EventListener
 	public void externalEvent(ExternalEvent externalEvent) {
 		jmsTemplate.convertAndSend("restbucks", externalEvent);
