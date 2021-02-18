@@ -1,4 +1,4 @@
-package org.springsource.restbucks;
+package org.springsource.restbucks.core.externalevents;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jms.annotation.JmsListener;
-import org.springsource.restbucks.JmsExternalEventProcessorTest.EventListenerForTest;
+import org.springsource.restbucks.core.externalevents.JmsExternalEventProcessorTest.EventListenerForTest;
 import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.OrderRepository;
 

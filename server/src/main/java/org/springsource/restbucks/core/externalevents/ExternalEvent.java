@@ -1,4 +1,4 @@
-package org.springsource.restbucks;
+package org.springsource.restbucks.core.externalevents;
 
 // marker interface
 public interface ExternalEvent {
