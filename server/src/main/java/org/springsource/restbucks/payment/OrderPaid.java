@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import org.springsource.restbucks.ExternalEvent;
 import org.springsource.restbucks.order.Order;
 
 /**

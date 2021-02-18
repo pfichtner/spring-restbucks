@@ -18,7 +18,6 @@ package org.springsource.restbucks;
 import org.springframework.context.event.EventListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
-import org.springsource.restbucks.payment.ExternalEvent;
 
 import lombok.RequiredArgsConstructor;
 

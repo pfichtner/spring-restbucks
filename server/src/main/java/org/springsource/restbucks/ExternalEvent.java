@@ -1,4 +1,4 @@
-package org.springsource.restbucks.payment;
+package org.springsource.restbucks;
 
 // marker interface
 public interface ExternalEvent {
