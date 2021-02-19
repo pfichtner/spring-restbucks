@@ -81,9 +81,9 @@ class CustomerCardController {
 		var model = new ScanModel(scan.getCustomerCard()) //
 				.add(customerCardLinks.getOrderLinks().linkToItemResource(order));
 
-		var paymentUri = customerCardLinks.getCustomerCardLink(order).toUri();
+		var customerCardUri = customerCardLinks.getCustomerCardLink(order).toUri();
 
-		return created(paymentUri).body(model);
+		return created(customerCardUri).body(model);
 	}
 
 	@GetMapping(path = "/orders/{id}" + CustomerCardLinks.CUSTOMER_CARD)
