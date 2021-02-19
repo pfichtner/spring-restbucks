@@ -23,14 +23,13 @@ import org.springframework.hateoas.server.TypedEntityLinks;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springsource.restbucks.Restbucks;
+import org.springsource.restbucks.customercard.CustomerCardScan;
 import org.springsource.restbucks.order.Order;
-import org.springsource.restbucks.payment.Payment;
-import org.springsource.restbucks.payment.Payment.Receipt;
 
 import lombok.Getter;
 
 /**
- * Helper component to create links to the {@link Payment} and {@link Receipt}.
+ * Helper component to create links to the {@link CustomerCardScan}. 
  *
  * @author Peter Fichtner
  */
