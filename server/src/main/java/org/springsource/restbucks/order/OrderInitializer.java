@@ -15,17 +15,17 @@
  */
 package org.springsource.restbucks.order;
 
-import static org.springsource.restbucks.core.Currencies.*;
+import static org.springsource.restbucks.core.Currencies.EURO;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import java.util.List;
+import java.util.Arrays;
 
 import org.javamoney.moneta.Money;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Initializer to set up two {@link Order}s.
@@ -50,9 +50,9 @@ class OrderInitializer {
 			return;
 		}
 
-		var javaChip = new LineItem("Java Chip", Money.of(4.20, EURO));
-		var cappuchino = new LineItem("Cappuchino", Money.of(3.20, EURO));
+		LineItem javaChip = new LineItem("Java Chip", Money.of(4.20, EURO));
+		LineItem cappuchino = new LineItem("Cappuchino", Money.of(3.20, EURO));
 
-		orders.saveAll(List.of(new Order(javaChip), new Order(cappuchino)));
+		orders.saveAll(Arrays.asList(new Order(javaChip), new Order(cappuchino)));
 	}
 }

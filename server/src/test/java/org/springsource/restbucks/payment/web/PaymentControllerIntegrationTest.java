@@ -21,7 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.RepresentationModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.Order.Status;
 import org.springsource.restbucks.order.OrderRepository;
 import org.springsource.restbucks.payment.CreditCardNumber;
@@ -43,11 +45,11 @@ class PaymentControllerIntegrationTest {
 	void processesPayment() throws Exception {
 
 		// Given
-		var order = orders.findByStatus(Status.PAYMENT_EXPECTED).get(0);
+		Order order = orders.findByStatus(Status.PAYMENT_EXPECTED).get(0);
 
 		// When
-		var model = new PaymentForm(new CreditCardNumber("1234123412341234"));
-		var entity = controller.submitPayment(order, model);
+		PaymentForm model = new PaymentForm(new CreditCardNumber("1234123412341234"));
+		ResponseEntity<?> entity = controller.submitPayment(order, model);
 
 		// Then
 		assertThat(entity.getHeaders().getLocation()).isNotNull();

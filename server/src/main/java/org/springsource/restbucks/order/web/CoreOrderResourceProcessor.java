@@ -20,7 +20,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.EntityLinks;
+import org.springframework.hateoas.server.LinkBuilder;
 import org.springframework.hateoas.server.RepresentationModelProcessor;
+import org.springframework.hateoas.server.TypedEntityLinks;
 import org.springframework.stereotype.Component;
 import org.springsource.restbucks.order.Order;
 
@@ -46,12 +48,12 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 	@Override
 	public EntityModel<Order> process(EntityModel<Order> resource) {
 
-		var typedEntityLinks = entityLinks.forType(Order::getId);
-		var order = resource.getContent();
+		TypedEntityLinks<Order> typedEntityLinks = entityLinks.forType(Order::getId);
+		Order order = resource.getContent();
 
 		if (!order.isPaid()) {
 			
-			var orderLink = typedEntityLinks.linkForItemResource(order);
+			LinkBuilder orderLink = typedEntityLinks.linkForItemResource(order);
 			
 			resource.add(orderLink.withRel(CANCEL_REL));
 			resource.add(orderLink.withRel(UPDATE_REL));

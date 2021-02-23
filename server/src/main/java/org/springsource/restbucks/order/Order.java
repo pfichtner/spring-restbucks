@@ -15,11 +15,9 @@
  */
 package org.springsource.restbucks.order;
 
-import lombok.Getter;
-import lombok.ToString;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +32,9 @@ import javax.persistence.Table;
 import org.javamoney.moneta.Money;
 import org.springsource.restbucks.core.AbstractAggregateRoot;
 import org.springsource.restbucks.payment.OrderPaid;
+
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * An order.
@@ -75,7 +76,7 @@ public class Order extends AbstractAggregateRoot {
 	 * @param items must not be {@literal null}.
 	 */
 	public Order(LineItem... items) {
-		this(List.of(items), null);
+		this(Arrays.asList(items), null);
 	}
 
 	Order() {

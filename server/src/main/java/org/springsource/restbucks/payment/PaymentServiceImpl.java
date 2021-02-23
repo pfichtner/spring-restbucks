@@ -54,21 +54,21 @@ class PaymentServiceImpl implements PaymentService {
 		}
 
 		// Using Optional.orElseThrow(…) doesn't work due to https://bugs.openjdk.java.net/browse/JDK-8054569
-		var creditCardResult = creditCardRepository.findByNumber(creditCardNumber);
+		Optional<CreditCard> creditCardResult = creditCardRepository.findByNumber(creditCardNumber);
 
 		if (!creditCardResult.isPresent()) {
 			throw new PaymentException(order,
 					String.format("No credit card found for number: %s", creditCardNumber.getNumber()));
 		}
 
-		var creditCard = creditCardResult.get();
+		CreditCard creditCard = creditCardResult.get();
 
 		if (!creditCard.isValid()) {
 			throw new PaymentException(order, String.format("Invalid credit card with number %s, expired %s!",
 					creditCardNumber.getNumber(), creditCard.getExpirationDate()));
 		}
 
-		var payment = paymentRepository.save(new CreditCardPayment(creditCard, order));
+		CreditCardPayment payment = paymentRepository.save(new CreditCardPayment(creditCard, order));
 
 		orderRepository.save(order.markPaid());
 
@@ -92,7 +92,7 @@ class PaymentServiceImpl implements PaymentService {
 	@Override
 	public Optional<Receipt> takeReceiptFor(Order order) {
 
-		var result = orderRepository.save(order.markTaken());
+		Order result = orderRepository.save(order.markTaken());
 
 		return getPaymentFor(result).map(Payment::getReceipt);
 	}
