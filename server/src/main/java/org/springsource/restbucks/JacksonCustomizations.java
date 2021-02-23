@@ -31,6 +31,8 @@ import org.springframework.data.rest.webmvc.json.JsonSchema.JsonSchemaProperty;
 import org.springframework.data.rest.webmvc.json.JsonSchemaPropertyCustomizer;
 import org.springframework.data.util.TypeInformation;
 import org.springsource.restbucks.core.AbstractAggregateRoot;
+import org.springsource.restbucks.customercard.CustomerCard;
+import org.springsource.restbucks.customercard.CustomerCardNumber;
 import org.springsource.restbucks.order.LineItem;
 import org.springsource.restbucks.order.Location;
 import org.springsource.restbucks.order.Milk;
@@ -78,6 +80,7 @@ class JacksonCustomizations {
 			setMixInAnnotation(LineItem.class, LineItemMixin.class);
 			setMixInAnnotation(CreditCard.class, CreditCardMixin.class);
 			setMixInAnnotation(CreditCardNumber.class, CreditCardNumberMixin.class);
+			setMixInAnnotation(CustomerCardNumber.class, CustomerCardNumberMixin.class);
 		}
 
 		static abstract class AggregateRootMixin {
@@ -102,6 +105,9 @@ class JacksonCustomizations {
 
 		@JsonSerialize(using = ToStringSerializer.class)
 		static abstract class CreditCardNumberMixin {}
+		
+		@JsonSerialize(using = ToStringSerializer.class)
+		static abstract class CustomerCardNumberMixin {}
 	}
 
 	@SuppressWarnings("serial")

@@ -60,12 +60,12 @@ public class CustomerCardScan extends AbstractEntity {
 	 * 
 	 * @param order must not be {@literal null}.
 	 */
-	public CustomerCardScan(CustomerCard customerCardNumber, Order order) {
+	public CustomerCardScan(CustomerCard customerCard, Order order) {
 
-		Assert.notNull(customerCardNumber, "CustomerCardNumber must not be null!");
+		Assert.notNull(customerCard, "CustomerCardNumber must not be null!");
 		Assert.notNull(order, "Order must not be null!");
 
-		this.customerCard = customerCardNumber;
+		this.customerCard = customerCard;
 		this.order = order;
 		this.scanDate = LocalDateTime.now();
 	}
