@@ -38,7 +38,7 @@ class JmsExternalEventProcessorTest {
 		@Autowired
 		private ObjectMapper objectMapper;
 
-		private List<MyOrderPaidForTest> events = new CopyOnWriteArrayList<>();
+		private final List<MyOrderPaidForTest> events = new CopyOnWriteArrayList<>();
 
 		@JmsListener(destination = "restbucks", selector = "_type = 'org.springsource.restbucks.payment.OrderPaid'")
 		public void receiveObject(TextMessage message) throws JMSException {
