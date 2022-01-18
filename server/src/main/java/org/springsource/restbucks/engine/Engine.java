@@ -15,7 +15,7 @@
  */
 package org.springsource.restbucks.engine;
 
-import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -42,24 +42,25 @@ import lombok.extern.slf4j.Slf4j;
 class Engine {
 
 	private final @NonNull OrderRepository repository;
+	private final @NonNull EngineSettings settings;
 
 	@Async
 	@TransactionalEventListener
 	public void handleOrderPaidEvent(OrderPaid event) throws InterruptedException {
 		var order = loadOrder(event.getOrderId());
+		var processingTime = settings.getProcessingTime();
 
-		LOG.info("Starting to process order {}.", order);
+		LOG.info("Starting to process order {} for {}.", order, processingTime.toString());
 		order.markInPreparation();
 		order = repository.save(order);
 
-		TimeUnit.SECONDS.sleep(5);
+		MILLISECONDS.sleep(processingTime.toMillis());
 
 		order.markPrepared();
 		order = repository.save(order);
 
 		LOG.info("Finished processing order {}.", order);
 	}
-
 
 	private Order loadOrder(long id) {
 		return repository.findById(id) //
