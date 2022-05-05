@@ -15,11 +15,9 @@
  */
 package org.springsource.restbucks.payment;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
 import org.springsource.restbucks.order.Order;
+
+import lombok.Value;
 
 /**
  * Event to be thrown when an {@link Order} has been payed.
@@ -27,19 +25,9 @@ import org.springsource.restbucks.order.Order;
  * @author Oliver Gierke
  * @author Stéphane Nicoll
  */
-@Getter
-@EqualsAndHashCode
-@ToString
+@Value
 public class OrderPaid {
 
-	private final long orderId;
+	long orderId;
 
-	/**
-	 * Creates a new {@link OrderPaid}
-	 * 
-	 * @param orderId the id of the order that just has been payed
-	 */
-	public OrderPaid(long orderId) {
-		this.orderId = orderId;
-	}
 }
