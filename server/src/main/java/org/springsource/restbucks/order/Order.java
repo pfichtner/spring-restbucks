@@ -97,59 +97,42 @@ public class Order extends AbstractAggregateRoot {
 	/**
 	 * Marks the {@link Order} as payed.
 	 */
-	public Order markPaid() {
-
+	public void markPaid() {
 		if (isPaid()) {
 			throw new IllegalStateException("Already paid order cannot be paid again!");
 		}
-
 		this.status = Status.PAID;
-
 		registerEvent(new OrderPaid(getId()));
-
-		return this;
 	}
 
 	/**
 	 * Marks the {@link Order} as in preparation.
 	 */
-	public Order markInPreparation() {
-
+	public void markInPreparation() {
 		if (this.status != Status.PAID) {
 			throw new IllegalStateException(
 					String.format("Order must be in state payed to start preparation! Current status: %s", this.status));
 		}
-
 		this.status = Status.PREPARING;
-
-		return this;
 	}
 
 	/**
 	 * Marks the {@link Order} as prepared.
 	 */
-	public Order markPrepared() {
-
+	public void markPrepared() {
 		if (this.status != Status.PREPARING) {
 			throw new IllegalStateException(String
 					.format("Cannot mark Order prepared that is currently not preparing! Current status: %s.", this.status));
 		}
-
 		this.status = Status.READY;
-
-		return this;
 	}
 
-	public Order markTaken() {
-
+	public void markTaken() {
 		if (this.status != Status.READY) {
 			throw new IllegalStateException(
 					String.format("Cannot mark Order taken that is currently not paid! Current status: %s.", this.status));
 		}
-
 		this.status = Status.TAKEN;
-
-		return this;
 	}
 
 	/**

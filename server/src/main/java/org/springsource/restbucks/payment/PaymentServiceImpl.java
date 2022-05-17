@@ -70,7 +70,8 @@ class PaymentServiceImpl implements PaymentService {
 
 		var payment = paymentRepository.save(new CreditCardPayment(creditCard, order));
 
-		orderRepository.save(order.markPaid());
+		order.markPaid();
+		orderRepository.save(order);
 
 		return payment;
 	}
@@ -91,8 +92,8 @@ class PaymentServiceImpl implements PaymentService {
 	 */
 	@Override
 	public Optional<Receipt> takeReceiptFor(Order order) {
-
-		var result = orderRepository.save(order.markTaken());
+		order.markTaken();
+		var result = orderRepository.save(order);
 
 		return getPaymentFor(result).map(Payment::getReceipt);
 	}

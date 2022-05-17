@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -53,19 +54,21 @@ class Engine {
 		var order = repository.findById(id) //
 				.orElseThrow(() -> new IllegalStateException(String.format("No order found for identifier %s!", id)));
 
-		order = repository.save(order.markInPreparation());
+		order.markInPreparation();
+		order = repository.save(order);
 
 		ordersInProgress.add(order);
 
 		LOG.info("Starting to process order {}.", order);
 
 		try {
-			Thread.sleep(5000);
+			TimeUnit.SECONDS.sleep(5);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
-		order = repository.save(order.markPrepared());
+		order.markPrepared();
+		order = repository.save(order);
 
 		ordersInProgress.remove(order);
 
