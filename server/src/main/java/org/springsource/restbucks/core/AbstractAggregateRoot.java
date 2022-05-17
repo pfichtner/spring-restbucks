@@ -15,8 +15,6 @@
  */
 package org.springsource.restbucks.core;
 
-import lombok.Getter;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +27,10 @@ public class AbstractAggregateRoot extends AbstractEntity {
 	/**
 	 * All domain events currently captured by the aggregate.
 	 */
-	@Getter(onMethod = @__(@DomainEvents)) //
+	// could be done via lombok, too 
+	// @Getter(onMethod = @__(@DomainEvents)) //
 	private transient final List<Object> domainEvents = new ArrayList<>();
-
+	
 	/**
 	 * Registers the given event object for publication on a call to a Spring Data repository's save method.
 	 * 
@@ -39,11 +38,14 @@ public class AbstractAggregateRoot extends AbstractEntity {
 	 * @return
 	 */
 	protected <T> T registerEvent(T event) {
-
 		Assert.notNull(event, "Domain event must not be null!");
-
 		this.domainEvents.add(event);
 		return event;
+	}
+
+	@DomainEvents
+	public List<Object> getDomainEvents() {
+		return this.domainEvents;
 	}
 
 	/**
