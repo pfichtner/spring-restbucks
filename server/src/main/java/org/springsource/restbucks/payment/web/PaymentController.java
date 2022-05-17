@@ -134,7 +134,7 @@ class PaymentController {
 		var orderLinks = paymentLinks.getOrderLinks();
 		var order = receipt.getOrder();
 
-		var model = new EntityModel<>(receipt) //
+		var model = EntityModel.of(receipt) //
 				.add(orderLinks.linkToItemResource(order));
 
 		if (!order.isTaken()) {

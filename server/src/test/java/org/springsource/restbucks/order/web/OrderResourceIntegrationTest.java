@@ -16,12 +16,12 @@
 package org.springsource.restbucks.order.web;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.hateoas.MediaTypes;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
 
 /**
@@ -33,11 +33,10 @@ class OrderResourceIntegrationTest extends AbstractWebIntegrationTest {
 
 	@Test
 	void exposesOrdersResourceViaRootResource() throws Exception {
-
 		mvc.perform(get("/")).//
-				andDo(MockMvcResultHandlers.print()).//
+				andDo(print()).//
 				andExpect(status().isOk()). //
-				andExpect(content().contentTypeCompatibleWith(MediaTypes.HAL_JSON)). //
+				andExpect(content().contentTypeCompatibleWith(HAL_JSON)). //
 				andExpect(jsonPath("$._links.restbucks:orders.href", notNullValue()));
 	}
 }

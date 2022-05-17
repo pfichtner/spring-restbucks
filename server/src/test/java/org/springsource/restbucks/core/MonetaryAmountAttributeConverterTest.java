@@ -35,7 +35,6 @@ class MonetaryAmountAttributeConverterTest {
 	 */
 	@Test
 	void handlesNullValues() {
-
 		assertThat(converter.convertToDatabaseColumn(null)).isNull();
 		assertThat(converter.convertToEntityAttribute(null)).isNull();
 	}
@@ -45,7 +44,6 @@ class MonetaryAmountAttributeConverterTest {
 	 */
 	@Test
 	void handlesSimpleValue() {
-
 		assertThat(converter.convertToDatabaseColumn(Money.of(1.23, "EUR"))).isEqualTo("EUR 1.23");
 		assertThat(converter.convertToEntityAttribute("EUR 1.23")).isEqualTo(Money.of(1.23, "EUR"));
 	}
@@ -55,7 +53,6 @@ class MonetaryAmountAttributeConverterTest {
 	 */
 	@Test
 	void handlesNegativeValues() {
-
 		assertThat(converter.convertToDatabaseColumn(Money.of(-1.20, "USD"))).isEqualTo("USD -1.2");
 		assertThat(converter.convertToEntityAttribute("USD -1.2")).isEqualTo(Money.of(-1.20, "USD"));
 	}
@@ -83,4 +80,5 @@ class MonetaryAmountAttributeConverterTest {
 	void deserializesFormattedValues() {
 		assertThat(converter.convertToEntityAttribute("EUR 123,456.78")).isEqualTo(Money.of(123456.78, "EUR"));
 	}
+
 }
