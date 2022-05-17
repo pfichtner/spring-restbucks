@@ -24,8 +24,8 @@ import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.OrderRepository;
 import org.springsource.restbucks.payment.OrderPaid;
 
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 class Engine {
 
 	private final @NonNull OrderRepository repository;
@@ -46,9 +46,7 @@ class Engine {
 	@Async
 	@TransactionalEventListener
 	public void handleOrderPaidEvent(OrderPaid event) throws InterruptedException {
-		var id = event.getOrderId();
-		var order = repository.findById(id) //
-				.orElseThrow(() -> new IllegalStateException(String.format("No order found for id %s!", id)));
+		var order = loadOrder(event.getOrderId());
 
 		LOG.info("Starting to process order {}.", order);
 		order.markInPreparation();
@@ -61,4 +59,11 @@ class Engine {
 
 		LOG.info("Finished processing order {}.", order);
 	}
+
+
+	public Order loadOrder(long id) {
+		return repository.findById(id) //
+				.orElseThrow(() -> new IllegalStateException(String.format("No order found for id %s!", id)));
+	}
+
 }
