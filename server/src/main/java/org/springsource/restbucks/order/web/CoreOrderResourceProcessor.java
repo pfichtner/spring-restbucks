@@ -39,18 +39,12 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 
 	private final @NonNull EntityLinks entityLinks;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.hateoas.server.RepresentationModelProcessor#process(org.springframework.hateoas.RepresentationModel)
-	 */
 	@Override
 	public EntityModel<Order> process(EntityModel<Order> resource) {
-
 		var typedEntityLinks = entityLinks.forType(Order::getId);
 		var order = resource.getContent();
 
 		if (!order.isPaid()) {
-			
 			var orderLink = typedEntityLinks.linkForItemResource(order);
 			
 			resource.add(orderLink.withRel(CANCEL_REL));

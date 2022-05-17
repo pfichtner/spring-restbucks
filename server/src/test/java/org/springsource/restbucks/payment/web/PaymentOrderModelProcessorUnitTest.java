@@ -22,8 +22,8 @@ import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
 import static org.springsource.restbucks.order.Order.Status.READY;
 import static org.springsource.restbucks.order.OrderTestUtils.createExistingOrder;
 import static org.springsource.restbucks.order.OrderTestUtils.existingOrderWithStatus;
-
-import java.util.EnumSet;
+import static org.springsource.restbucks.payment.web.PaymentLinks.PAYMENT_REL;
+import static org.springsource.restbucks.payment.web.PaymentLinks.RECEIPT_REL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,8 +54,8 @@ class PaymentOrderModelProcessorUnitTest {
 	PaymentLinks paymentLinks;
 
 	PaymentOrderModelProcessor processor;
-	Link paymentLink = Link.of("payment", PaymentLinks.PAYMENT_REL);
-	Link receiptLink = Link.of("receipt", PaymentLinks.RECEIPT_REL);
+	Link paymentLink = Link.of("payment", PAYMENT_REL);
+	Link receiptLink = Link.of("receipt", RECEIPT_REL);
 
 	@BeforeEach
 	void setUp() {
@@ -71,17 +71,16 @@ class PaymentOrderModelProcessorUnitTest {
 	@ParameterizedTest
 	@EnumSource(value = Status.class)
 	void doesNotAddLinksForNeitherFreshNorUnfinishedOrders(Status status) {
-		if (EnumSet.of(READY, PAYMENT_EXPECTED).contains(status)) {
-			return;
+		if (status != READY && status != PAYMENT_EXPECTED) {
+			EntityModel<Order> resource = processor.process(EntityModel.of(existingOrderWithStatus(status)));
+			assertThat(resource.hasLinks()).isFalse();
 		}
-		EntityModel<Order> resource = processor.process(EntityModel.of(existingOrderWithStatus(status)));
-		assertThat(resource.hasLinks()).isFalse();
 	}
 
 	@Test
 	void addsPaymentLinkForFreshOrder() {
 		EntityModel<Order> resource = processor.process(EntityModel.of(createExistingOrder()));
-		assertThat(resource.getLink(PaymentLinks.PAYMENT_REL)).hasValue(paymentLink);
+		assertThat(resource.getLink(PAYMENT_REL)).hasValue(paymentLink);
 	}
 
 	@Test
@@ -92,7 +91,7 @@ class PaymentOrderModelProcessorUnitTest {
 		order.markPrepared();
 
 		EntityModel<Order> resource = processor.process(EntityModel.of(order));
-		assertThat(resource.getLink(PaymentLinks.RECEIPT_REL)).hasValue(receiptLink);
+		assertThat(resource.getLink(RECEIPT_REL)).hasValue(receiptLink);
 	}
 
 }

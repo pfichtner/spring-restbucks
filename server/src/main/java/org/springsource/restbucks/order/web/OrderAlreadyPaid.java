@@ -20,7 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Exception being thrown in case an {@link Order} has already been paid and a payment is reattempted.
+ * Exception being thrown in case an {@link Order} has already been paid and a
+ * payment is reattempted.
  * 
  * @author Oliver Gierke
  */
@@ -28,4 +29,5 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class OrderAlreadyPaid extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
+
 }

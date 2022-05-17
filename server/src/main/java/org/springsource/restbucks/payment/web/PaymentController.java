@@ -71,7 +71,6 @@ class PaymentController {
 	 */
 	@PutMapping(path = PaymentLinks.PAYMENT)
 	ResponseEntity<?> submitPayment(@PathVariable("id") Order order, @RequestBody PaymentForm ccn) {
-
 		if (order == null || order.isPaid()) {
 			return ResponseEntity.notFound().build();
 		}
@@ -93,7 +92,6 @@ class PaymentController {
 	 */
 	@GetMapping(path = PaymentLinks.RECEIPT)
 	HttpEntity<?> showReceipt(@PathVariable("id") Order order) {
-
 		if (order == null || !order.isPaid() || order.isTaken()) {
 			return ResponseEntity.notFound().build();
 		}
@@ -112,7 +110,6 @@ class PaymentController {
 	 */
 	@DeleteMapping(path = PaymentLinks.RECEIPT)
 	HttpEntity<?> takeReceipt(@PathVariable("id") Order order) {
-
 		if (order == null || !order.isPaid()) {
 			return ResponseEntity.notFound().build();
 		}
@@ -130,7 +127,6 @@ class PaymentController {
 	 * @return
 	 */
 	private HttpEntity<EntityModel<Receipt>> createReceiptResponse(Receipt receipt) {
-
 		var orderLinks = paymentLinks.getOrderLinks();
 		var order = receipt.getOrder();
 
@@ -152,7 +148,6 @@ class PaymentController {
 	@Data
 	@EqualsAndHashCode(callSuper = true)
 	static class PaymentModel extends RepresentationModel<PaymentModel> {
-
 		private final MonetaryAmount amount;
 		private final CreditCard creditCard;
 	}
@@ -160,6 +155,6 @@ class PaymentController {
 	@Value
 	@RequiredArgsConstructor(onConstructor = @__(@JsonCreator))
 	static class PaymentForm {
-		CreditCardNumber number;
+		private final CreditCardNumber number;
 	}
 }
