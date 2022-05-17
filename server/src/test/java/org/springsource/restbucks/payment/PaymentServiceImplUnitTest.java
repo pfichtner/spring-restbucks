@@ -16,7 +16,7 @@
 package org.springsource.restbucks.payment;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springsource.restbucks.order.Location;
 import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.OrderRepository;
 import org.springsource.restbucks.order.OrderTestUtils;
@@ -81,7 +82,7 @@ class PaymentServiceImplUnitTest {
 		when(creditCardRepository.findByNumber(NUMBER)).thenReturn(Optional.empty());
 
 		assertThatExceptionOfType(PaymentException.class) //
-			.isThrownBy(() -> paymentService.pay(new Order(), NUMBER)) //
+			.isThrownBy(() -> paymentService.pay(new Order(Location.TAKE_AWAY), NUMBER)) //
 			.withMessageContaining("credit card") //
 			.withMessageContaining(NUMBER.getNumber());
 	}

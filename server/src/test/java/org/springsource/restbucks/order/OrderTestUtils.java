@@ -43,6 +43,6 @@ public class OrderTestUtils {
 	}
 	
 	public static Order createOrder() {
-		return new Order(new LineItem("English breakfast", Money.of(2.70, EURO)));
+		return new Order(Location.TAKE_AWAY, new LineItem("English breakfast", Money.of(2.70, EURO)));
 	}
 }

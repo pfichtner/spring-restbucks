@@ -53,6 +53,6 @@ class OrderInitializer {
 		var javaChip = new LineItem("Java Chip", Money.of(4.20, EURO));
 		var cappuchino = new LineItem("Cappuchino", Money.of(3.20, EURO));
 
-		orders.saveAll(List.of(new Order(javaChip), new Order(cappuchino)));
+		orders.saveAll(List.of(new Order(Location.TAKE_AWAY, javaChip), new Order(Location.TAKE_AWAY, cappuchino)));
 	}
 }

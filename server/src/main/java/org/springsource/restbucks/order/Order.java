@@ -62,8 +62,10 @@ public class Order extends AbstractAggregateRoot {
 	 * @param location
 	 */
 	public Order(Collection<LineItem> lineItems, Location location) {
-
-		this.location = location == null ? Location.TAKE_AWAY : location;
+		if (location == null) {
+			throw new NullPointerException("location");
+		}
+		this.location = location;
 		this.status = Status.PAYMENT_EXPECTED;
 		this.lineItems.addAll(lineItems);
 		this.orderedDate = LocalDateTime.now();
@@ -71,15 +73,15 @@ public class Order extends AbstractAggregateRoot {
 
 	/**
 	 * Creates a new {@link Order} containing the given {@link LineItem}s.
-	 * 
+	 * @param location must not be {@literal null}.
 	 * @param items must not be {@literal null}.
 	 */
-	public Order(LineItem... items) {
-		this(List.of(items), null);
+	public Order(Location location, LineItem... items) {
+		this(List.of(items), location);
 	}
 
 	Order() {
-		this(new LineItem[0]);
+		this(Location.TAKE_AWAY);
 	}
 
 	/**
@@ -88,7 +90,6 @@ public class Order extends AbstractAggregateRoot {
 	 * @return will never be {@literal null}.
 	 */
 	public MonetaryAmount getPrice() {
-
 		return lineItems.stream().//
 				map(LineItem::getPrice).//
 				reduce(MonetaryAmount::add).orElse(Money.of(0.0, "EUR"));
