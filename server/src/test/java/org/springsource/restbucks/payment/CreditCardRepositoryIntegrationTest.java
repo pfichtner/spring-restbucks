@@ -23,14 +23,15 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springsource.restbucks.AbstractIntegrationTest;
+import org.springsource.restbucks.TransactionalIntegrationTest;
 
 /**
  * Integration tests for {@link CreditCardRepository}.
  *
  * @author Oliver Gierke
  */
-class CreditCardRepositoryIntegrationTest extends AbstractIntegrationTest {
+@TransactionalIntegrationTest
+class CreditCardRepositoryIntegrationTest {
 
 	@Autowired CreditCardRepository repository;
 

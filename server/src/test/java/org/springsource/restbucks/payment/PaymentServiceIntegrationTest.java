@@ -21,7 +21,7 @@ import static org.springsource.restbucks.payment.CreditCardRepositoryIntegration
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springsource.restbucks.AbstractIntegrationTest;
+import org.springsource.restbucks.TransactionalIntegrationTest;
 import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.Order.Status;
 import org.springsource.restbucks.order.OrderRepository;
@@ -31,7 +31,8 @@ import org.springsource.restbucks.order.OrderRepository;
  * 
  * @author Oliver Gierke
  */
-class PaymentServiceIntegrationTest extends AbstractIntegrationTest {
+@TransactionalIntegrationTest
+class PaymentServiceIntegrationTest {
 
 	@Autowired PaymentService paymentService;
 	@Autowired OrderRepository orders;

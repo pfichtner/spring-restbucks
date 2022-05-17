@@ -21,14 +21,15 @@ import static org.springsource.restbucks.order.Order.Status.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springsource.restbucks.AbstractIntegrationTest;
+import org.springsource.restbucks.TransactionalIntegrationTest;
 
 /**
  * Integration tests for Spring Data based {@link OrderRepository}.
  * 
  * @author Oliver Gierke
  */
-class OrderRepositoryIntegrationTest extends AbstractIntegrationTest {
+@TransactionalIntegrationTest
+class OrderRepositoryIntegrationTest {
 
 	@Autowired OrderRepository repository;
 

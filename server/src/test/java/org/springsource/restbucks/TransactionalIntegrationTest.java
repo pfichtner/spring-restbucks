@@ -15,14 +15,21 @@
  */
 package org.springsource.restbucks;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base class to implement transactional integration tests using the root application configuration.
+ * Annotation for transactional integration tests using the root application
+ * configuration.
  * 
- * @author Oliver Gierke
+ * @author Peter Fichtner
  */
 @Transactional
 @SpringBootTest
-public abstract class AbstractIntegrationTest {}
+@Retention(RUNTIME)
+public @interface TransactionalIntegrationTest {
+}
