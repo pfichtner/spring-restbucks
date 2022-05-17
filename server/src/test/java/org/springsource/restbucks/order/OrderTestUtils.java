@@ -29,14 +29,12 @@ import org.springsource.restbucks.order.Order.Status;
 public class OrderTestUtils {
 
 	public static Order createExistingOrder() {
-
 		Order order = new Order();
 		ReflectionTestUtils.setField(order, "id", 1L);
 		return order;
 	}
 
-	public static Order createExistingOrderWithStatus(Status status) {
-
+	public static Order existingOrderWithStatus(Status status) {
 		Order order = createExistingOrder();
 		ReflectionTestUtils.setField(order, "status", status);
 		return order;

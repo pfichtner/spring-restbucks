@@ -15,9 +15,10 @@
  */
 package org.springsource.restbucks;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.Locale;
+import static java.util.Locale.US;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +30,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import lombok.RequiredArgsConstructor;
@@ -43,21 +42,21 @@ import lombok.RequiredArgsConstructor;
 @SpringBootTest
 public abstract class AbstractWebIntegrationTest {
 
-	@Autowired WebApplicationContext context;
-	@Autowired LinkDiscoverers links;
+	@Autowired
+	protected WebApplicationContext context;
+	@Autowired
+	protected LinkDiscoverers links;
 
 	protected MockMvc mvc;
 
 	@BeforeEach
 	void setUp() {
-
-		mvc = MockMvcBuilders.webAppContextSetup(context).//
-				defaultRequest(MockMvcRequestBuilders.get("/").locale(Locale.US)).//
-				build();
+		mvc = webAppContextSetup(context).defaultRequest(get("/").locale(US)).build();
 	}
 
 	/**
-	 * Creates a {@link ResultMatcher} that checks for the presence of a link with the given rel.
+	 * Creates a {@link ResultMatcher} that checks for the presence of a link with
+	 * the given rel.
 	 *
 	 * @param rel
 	 * @return
@@ -67,7 +66,8 @@ public abstract class AbstractWebIntegrationTest {
 	}
 
 	/**
-	 * Creates a {@link ResultMatcher} that checks for the non-presence of a link with the given rel.
+	 * Creates a {@link ResultMatcher} that checks for the non-presence of a link
+	 * with the given rel.
 	 *
 	 * @param rel
 	 * @return
@@ -86,18 +86,13 @@ public abstract class AbstractWebIntegrationTest {
 		private final LinkRelation rel;
 		private final boolean present;
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.test.web.servlet.ResultMatcher#match(org.springframework.test.web.servlet.MvcResult)
-		 */
 		@Override
 		public void match(MvcResult result) throws Exception {
-
 			MockHttpServletResponse response = result.getResponse();
 			String content = response.getContentAsString();
 			LinkDiscoverer discoverer = links.getRequiredLinkDiscovererFor(response.getContentType());
-
-			assertThat(discoverer.findLinkWithRel(rel, content)).matches(it -> it.isPresent() == present);
+			assertThat(discoverer.findLinkWithRel(rel, content)).matches(l -> l.isPresent() == present);
 		}
 	}
+
 }

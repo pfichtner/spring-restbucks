@@ -46,18 +46,12 @@ public class CreditCardNumber {
 	 * @param number must not be {@literal null} and be a 16 digit numerical only String.
 	 */
 	public CreditCardNumber(String number) {
-
 		if (!isValid(number)) {
 			throw new IllegalArgumentException(String.format("Invalid credit card number %s!", number));
 		}
-
 		this.number = number;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return number;
@@ -70,6 +64,7 @@ public class CreditCardNumber {
 	 * @return
 	 */
 	public static boolean isValid(String number) {
-		return number == null ? false : PATTERN.matcher(number).matches();
+		return number != null && PATTERN.matcher(number).matches();
 	}
+
 }

@@ -53,21 +53,18 @@ class PaymentServiceImplUnitTest {
 
 	@Test
 	void rejectsNullPaymentRepository() {
-		
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 			.isThrownBy(() -> new PaymentServiceImpl(creditCardRepository, null, orderRepository));
 	}
 
 	@Test
 	void rejectsNullCreditCardRepository() {
-		
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 			.isThrownBy(() -> new PaymentServiceImpl(null, paymentRepository, orderRepository));
 	}
 
 	@Test
 	void rejectsAlreadyPaidOrder() {
-
 		Order order = OrderTestUtils.createExistingOrder();
 		order.markPaid();
 		
@@ -78,7 +75,6 @@ class PaymentServiceImplUnitTest {
 
 	@Test
 	void rejectsPaymentIfNoCreditCardFound() {
-
 		when(creditCardRepository.findByNumber(NUMBER)).thenReturn(Optional.empty());
 
 		assertThatExceptionOfType(PaymentException.class) //

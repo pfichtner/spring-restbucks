@@ -25,6 +25,7 @@ import net.minidev.json.JSONObject;
 
 import java.nio.file.Files;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -73,7 +74,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 */
 	@Test
 	void processExistingOrder() throws Exception {
-
 		MockHttpServletResponse response = accessRootResource();
 
 		response = discoverOrdersResource(response);
@@ -90,7 +90,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 */
 	@Test
 	void processNewOrder() throws Exception {
-
 		MockHttpServletResponse response = accessRootResource();
 
 		response = createNewOrder(response);
@@ -106,7 +105,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 */
 	@Test
 	void cancelOrderBeforePayment() throws Exception {
-
 		MockHttpServletResponse response = accessRootResource();
 
 		response = createNewOrder(response);
@@ -120,7 +118,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse accessRootResource() throws Exception {
-
 		LOG.info("Accessing root resource…");
 
 		MockHttpServletResponse response = mvc.perform(get("/")). //
@@ -141,7 +138,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse createNewOrder(MockHttpServletResponse source) throws Exception {
-
 		String content = source.getContentAsString();
 
 		Link ordersLink = getDiscovererFor(source).findRequiredLinkWithRel(ORDERS_REL, content);
@@ -166,7 +162,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse discoverOrdersResource(MockHttpServletResponse source) throws Exception {
-
 		String content = source.getContentAsString();
 		Link ordersLink = getDiscovererFor(source).findRequiredLinkWithRel(ORDERS_REL, content);
 
@@ -191,7 +186,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse accessFirstOrder(MockHttpServletResponse source) throws Exception {
-
 		String content = source.getContentAsString();
 		String order = JsonPath.parse(content).read(JsonPath.compile(FIRST_ORDER_EXPRESSION), JSONObject.class).toString();
 		Link orderLink = getDiscovererFor(source).findRequiredLinkWithRel(IanaLinkRelations.SELF, order).expand();
@@ -217,7 +211,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse triggerPayment(MockHttpServletResponse response) throws Exception {
-
 		String content = response.getContentAsString();
 		LinkDiscoverer discoverer = getDiscovererFor(response);
 		Link paymentLink = discoverer.findRequiredLinkWithRel(PAYMENT_REL, content);
@@ -256,7 +249,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse pollUntilOrderHasReceiptLink(MockHttpServletResponse response) throws Exception {
-
 		// Grab
 		String content = response.getContentAsString();
 		LinkDiscoverer discoverer = getDiscovererFor(response);
@@ -297,7 +289,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 			}
 
 			if (!receiptLink.isPresent()) {
-				Thread.sleep(2000);
+				TimeUnit.SECONDS.sleep(2);
 			}
 
 		} while (!receiptLink.isPresent());
@@ -314,7 +306,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private MockHttpServletResponse takeReceipt(MockHttpServletResponse response) throws Exception {
-
 		Link receiptLink = getDiscovererFor(response).findRequiredLinkWithRel(RECEIPT_REL, response.getContentAsString());
 
 		MockHttpServletResponse receiptResponse = mvc.perform(get(receiptLink.getHref())). //
@@ -340,7 +331,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private void verifyOrderTaken(MockHttpServletResponse response) throws Exception {
-
 		Link orderLink = getDiscovererFor(response).findRequiredLinkWithRel(ORDER_REL, response.getContentAsString());
 		MockHttpServletResponse orderResponse = mvc.perform(get(orderLink.expand().getHref())). //
 				andExpect(status().isOk()). // //
@@ -361,7 +351,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private void cancelOrder(MockHttpServletResponse response) throws Exception {
-
 		String content = response.getContentAsString();
 
 		LinkDiscoverer discoverer = getDiscovererFor(response);
@@ -371,4 +360,5 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		mvc.perform(delete(cancellationLink.getHref())).andExpect(status().isNoContent());
 		mvc.perform(get(selfLink.getHref())).andExpect(status().isNotFound());
 	}
+
 }

@@ -40,9 +40,8 @@ class PaymentServiceIntegrationTest {
 
 	@Test
 	void marksOrderAsPaid() {
-
 		Order order = orders.save(createOrder());
-		CreditCard creditCard = creditCards.save(createCreditCard());
+		CreditCard creditCard = creditCards.save(creditCard());
 		CreditCardPayment payment = paymentService.pay(order, creditCard.getNumber());
 
 		assertThat(paymentService.getPaymentFor(order)).hasValue(payment);
@@ -51,7 +50,6 @@ class PaymentServiceIntegrationTest {
 
 	@Test
 	void marksOrderAsTakenIfReceiptIsTaken() {
-
 		Order order = orders.save(createOrder());
 		order.markPaid();
 		order.markInPreparation();
@@ -59,7 +57,6 @@ class PaymentServiceIntegrationTest {
 		orders.save(order);
 
 		paymentService.takeReceiptFor(order);
-
 		assertThat(orders.findById(order.getId())).map(Order::getStatus).hasValue(Status.TAKEN);
 	}
 }

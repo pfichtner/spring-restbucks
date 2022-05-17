@@ -15,14 +15,13 @@
  */
 package org.springsource.restbucks.payment.web;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Locale;
 
 import javax.money.MonetaryAmount;
 
 import org.javamoney.moneta.Money;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springsource.restbucks.JacksonTestUtils;
@@ -37,15 +36,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 class MoneySerializationTest {
 
-	ObjectMapper mapper;
+	ObjectMapper mapper = mapper();
 
-	@BeforeEach
-	void setUp() {
-
-		this.mapper = new ObjectMapper();
-		this.mapper.registerModules(JacksonTestUtils.getModules());
-
+	public static ObjectMapper mapper() {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModules(JacksonTestUtils.getModules());
 		LocaleContextHolder.setLocale(Locale.ROOT);
+		return mapper;
 	}
 
 	/**
@@ -63,4 +60,5 @@ class MoneySerializationTest {
 	void deserializesMonetaryAmount() throws Exception {
 		assertThat(mapper.readValue("\"EUR 4.20\"", MonetaryAmount.class)).isEqualTo(Money.of(4.20, Currencies.EURO));
 	}
+
 }

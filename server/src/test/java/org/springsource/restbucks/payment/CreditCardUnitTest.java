@@ -15,10 +15,10 @@
  */
 package org.springsource.restbucks.payment;
 
+import static java.time.Month.DECEMBER;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.Year;
 
 import org.junit.jupiter.api.Test;
@@ -34,10 +34,9 @@ class CreditCardUnitTest {
 
 	@Test
 	void discoversExpiredCreditCard() {
-
-		CreditCard creditCard = new CreditCard(NUMBER, "Oliver Gierke", Month.DECEMBER, Year.of(2016));
-
-		assertThat(creditCard.isValid(LocalDate.of(2016, 1, 1))).isTrue();
-		assertThat(creditCard.isValid(LocalDate.of(2016, 12, 1))).isFalse();
+		CreditCard creditCard = new CreditCard(NUMBER, "Oliver Gierke", DECEMBER, Year.of(2016));
+		LocalDate expiredAt = LocalDate.of(2016, 12, 1);
+		assertThat(creditCard.isValid(expiredAt.minusDays(1))).isTrue();
+		assertThat(creditCard.isValid(expiredAt)).isFalse();
 	}
 }

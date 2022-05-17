@@ -15,10 +15,10 @@
  */
 package org.springsource.restbucks.payment.web;
 
+import static java.time.Month.NOVEMBER;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.Year;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -42,13 +42,17 @@ import com.jayway.jsonpath.Option;
  */
 class CreditCardMarshallingTest {
 
-	static final String REFERENCE = "{\"number\":\"1234123412341234\",\"cardHolderName\":\"Oliver Gierke\",\"expirationDate\":[2013,11,1]}";
+	static final String NUMBER = "1234123412341234";
+	static final String HOLDER = "Oliver Gierke";
+	static final LocalDate EXPIRATION_DATE = LocalDate.of(2013, 11, 1);
+
+	static final String REFERENCE = "{\"number\":\"" + NUMBER + "\",\"cardHolderName\":\"" + HOLDER
+			+ "\",\"expirationDate\":[2013,11,1]}";
 
 	ObjectMapper mapper = new ObjectMapper();
 
 	@BeforeEach
 	void setUp() {
-
 		mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		mapper.registerModule(new JavaTimeModule());
 		mapper.registerModule(new ParameterNamesModule());
@@ -57,15 +61,13 @@ class CreditCardMarshallingTest {
 
 	@Test
 	void serializesCreditCardWithOutIdAndWithAppropriateMontshAndYears() throws Exception {
-
-		CreditCard creditCard = new CreditCard(new CreditCardNumber("1234123412341234"), "Oliver Gierke", Month.NOVEMBER,
-				Year.of(2013));
+		CreditCard creditCard = new CreditCard(new CreditCardNumber(NUMBER), HOLDER, NOVEMBER, Year.of(2013));
 
 		String result = mapper.writeValueAsString(creditCard);
 
-		assertThat(JsonPath.<String> read(result, "$.number")).isEqualTo("1234123412341234");
-		assertThat(JsonPath.<String> read(result, "$.cardHolderName")).isEqualTo("Oliver Gierke");
-		assertThat(JsonPath.<String> read(result, "$.expirationDate")).isEqualTo("2013-11-01");
+		assertThat(JsonPath.<String>read(result, "$.number")).isEqualTo(NUMBER);
+		assertThat(JsonPath.<String>read(result, "$.cardHolderName")).isEqualTo(HOLDER);
+		assertThat(LocalDate.parse(JsonPath.<String>read(result, "$.expirationDate"))).isEqualTo(EXPIRATION_DATE);
 
 		Configuration configuration = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS);
 
@@ -75,11 +77,10 @@ class CreditCardMarshallingTest {
 
 	@Test
 	void deserializesCreditCardWithOutIdAndWithAppropriateMontshAndYears() throws Exception {
-
 		CreditCard creditCard = mapper.readValue(REFERENCE, CreditCard.class);
 
 		assertThat(creditCard.getId()).isNull();
-		assertThat(creditCard.getExpirationDate()).isEqualTo(LocalDate.of(2013, 11, 1));
+		assertThat(creditCard.getExpirationDate()).isEqualTo(EXPIRATION_DATE);
 		assertThat(creditCard.getNumber()).isNotNull();
 	}
 }

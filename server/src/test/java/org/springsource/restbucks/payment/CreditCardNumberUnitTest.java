@@ -26,22 +26,25 @@ import org.junit.jupiter.api.Test;
  */
 class CreditCardNumberUnitTest {
 
+	private static final String NUMBER = "1234123412341234";
+
 	@Test
 	void rejectsInvalidLength() {
-		
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-			.isThrownBy(() -> new CreditCardNumber("1234"));
+				.isThrownBy(() -> new CreditCardNumber(NUMBER.substring(0, NUMBER.length() - 1)));
 	}
 
 	@Test
 	void rejectsLetters() {
-		
+		char[] chars = NUMBER.toCharArray();
+		chars[chars.length - 1] = 'A';
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-			.isThrownBy(() -> new CreditCardNumber("123412341234123A"));
+				.isThrownBy(() -> new CreditCardNumber(new String(chars)));
 	}
 
 	@Test
 	void createsValidCreditCardNumber() {
-		new CreditCardNumber("1234123412341234");
+		new CreditCardNumber(NUMBER);
 	}
+
 }

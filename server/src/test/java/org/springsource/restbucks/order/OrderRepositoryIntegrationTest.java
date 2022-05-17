@@ -35,38 +35,33 @@ class OrderRepositoryIntegrationTest {
 
 	@Test
 	void findsAllOrders() {
-
-		Iterable<Order> orders = repository.findAll();
+		var orders = repository.findAll();
 		assertThat(orders).isNotEmpty();
 	}
 
 	@Test
 	void createsNewOrder() {
+		Long countBeforeInsert = repository.count();
+		var order = repository.save(createOrder());
+		var result = repository.findAll();
 
-		Long before = repository.count();
-
-		Order order = repository.save(createOrder());
-
-		Iterable<Order> result = repository.findAll();
-
-		assertThat(result).hasSize(before.intValue() + 1);
+		assertThat(result).hasSize(countBeforeInsert.intValue() + 1);
 		assertThat(result).contains(order);
 	}
 
 	@Test
 	void findsOrderByStatus() {
+		int paidCountBeforeInsert = repository.findByStatus(PAID).size();
+		int paymentCountBeforeInsert = repository.findByStatus(PAYMENT_EXPECTED).size();
 
-		int paidBefore = repository.findByStatus(PAID).size();
-		int paymentExpectedBefore = repository.findByStatus(PAYMENT_EXPECTED).size();
-
-		Order order = repository.save(createOrder());
-		assertThat(repository.findByStatus(PAYMENT_EXPECTED)).hasSize(paymentExpectedBefore + 1);
-		assertThat(repository.findByStatus(PAID)).hasSize(paidBefore);
+		var order = repository.save(createOrder());
+		assertThat(repository.findByStatus(PAYMENT_EXPECTED)).hasSize(paymentCountBeforeInsert + 1);
+		assertThat(repository.findByStatus(PAID)).hasSize(paidCountBeforeInsert);
 
 		order.markPaid();
 		order = repository.save(order);
 
-		assertThat(repository.findByStatus(PAYMENT_EXPECTED)).hasSize(paymentExpectedBefore);
-		assertThat(repository.findByStatus(PAID)).hasSize(paidBefore + 1);
+		assertThat(repository.findByStatus(PAYMENT_EXPECTED)).hasSize(paymentCountBeforeInsert);
+		assertThat(repository.findByStatus(PAID)).hasSize(paidCountBeforeInsert + 1);
 	}
 }

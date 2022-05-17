@@ -15,10 +15,10 @@
  */
 package org.springsource.restbucks.payment;
 
-import static org.assertj.core.api.Assertions.*;
+import static java.time.Month.DECEMBER;
+import static java.time.Year.now;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Month;
-import java.time.Year;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -33,22 +33,33 @@ import org.springsource.restbucks.TransactionalIntegrationTest;
 @TransactionalIntegrationTest
 class CreditCardRepositoryIntegrationTest {
 
-	@Autowired CreditCardRepository repository;
+	static final CreditCard CREDIT_CARD = new CreditCard(new CreditCardNumber("4321432143214321"), "Oliver Gierke",
+			DECEMBER, now().plusYears(1));
+
+	@Autowired
+	CreditCardRepository repository;
+
+	@Test
+	void returnsEmptyOptionalIfCreditCardIsNotFound() {
+		assertThat(findByNumber(CREDIT_CARD.getNumber())).isEmpty();
+	}
 
 	@Test
 	void createsCreditCard() {
-
-		CreditCard creditCard = repository.save(createCreditCard());
-
-		Optional<CreditCard> result = repository.findByNumber(creditCard.getNumber());
-
-		assertThat(result.isPresent()).isTrue();
-		assertThat(result.get()).isEqualTo(creditCard);
+		repository.save(creditCard());
+		assertThat(findByNumber(CREDIT_CARD.getNumber())).hasValueSatisfying(c -> {
+			assertThat(c.getNumber()).isEqualTo(CREDIT_CARD.getNumber());
+			assertThat(c.getCardHolderName()).isEqualTo(CREDIT_CARD.getCardHolderName());
+			assertThat(c.getExpirationDate()).isEqualTo(CREDIT_CARD.getExpirationDate());
+		});
 	}
 
-	public static CreditCard createCreditCard() {
-
-		CreditCardNumber number = new CreditCardNumber("4321432143214321");
-		return new CreditCard(number, "Oliver Gierke", Month.DECEMBER, Year.now().plusYears(1));
+	Optional<CreditCard> findByNumber(CreditCardNumber creditCardNumber) {
+		return repository.findByNumber(creditCardNumber);
 	}
+
+	public static CreditCard creditCard() {
+		return CREDIT_CARD;
+	}
+
 }
