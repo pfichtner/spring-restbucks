@@ -32,6 +32,7 @@ import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 import org.javamoney.moneta.Money;
+import org.springframework.util.Assert;
 import org.springsource.restbucks.core.AbstractAggregateRoot;
 import org.springsource.restbucks.payment.OrderPaid;
 
@@ -62,9 +63,7 @@ public class Order extends AbstractAggregateRoot {
 	 * @param location
 	 */
 	public Order(Collection<LineItem> lineItems, Location location) {
-		if (location == null) {
-			throw new NullPointerException("location");
-		}
+		Assert.notNull(location, "Location must not be null!");
 		this.location = location;
 		this.status = Status.PAYMENT_EXPECTED;
 		this.lineItems.addAll(lineItems);
