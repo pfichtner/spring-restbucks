@@ -15,9 +15,10 @@
  */
 package org.springsource.restbucks.order;
 
-import static org.springsource.restbucks.order.OrderTestUtils.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.springsource.restbucks.order.Order.Status.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springsource.restbucks.order.Order.Status.PAID;
+import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
+import static org.springsource.restbucks.order.OrderTestUtils.createOrder;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +33,6 @@ import org.springsource.restbucks.TransactionalIntegrationTest;
 class OrderRepositoryIntegrationTest {
 
 	@Autowired OrderRepository repository;
-
-	@Test
-	void findsAllOrders() {
-		var orders = repository.findAll();
-		assertThat(orders).isNotEmpty();
-	}
 
 	@Test
 	void createsNewOrder() {

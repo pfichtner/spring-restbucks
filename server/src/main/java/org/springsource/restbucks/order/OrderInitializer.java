@@ -15,17 +15,19 @@
  */
 package org.springsource.restbucks.order;
 
-import static org.springsource.restbucks.core.Currencies.*;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static org.springsource.restbucks.core.Currencies.EURO;
+import static org.springsource.restbucks.order.Location.TAKE_AWAY;
 
 import java.util.List;
 
 import org.javamoney.moneta.Money;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Initializer to set up two {@link Order}s.
@@ -34,8 +36,11 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Profile(OrderInitializer.WITH_DEMO_DATA)
 class OrderInitializer {
 
+	public static final String WITH_DEMO_DATA = "Demo";
+	
 	private final @NonNull OrderRepository orders;
 
 	/**
@@ -50,9 +55,15 @@ class OrderInitializer {
 			return;
 		}
 
-		var javaChip = new LineItem("Java Chip", Money.of(4.20, EURO));
-		var cappuchino = new LineItem("Cappuchino", Money.of(3.20, EURO));
-
-		orders.saveAll(List.of(new Order(Location.TAKE_AWAY, javaChip), new Order(Location.TAKE_AWAY, cappuchino)));
+		orders.saveAll(List.of(new Order(TAKE_AWAY, javaChip()), new Order(TAKE_AWAY, cappuchino())));
 	}
+
+	private static LineItem javaChip() {
+		return new LineItem("Java Chip", Money.of(4.20, EURO));
+	}
+
+	private static LineItem cappuchino() {
+		return new LineItem("Cappuchino", Money.of(3.20, EURO));
+	}
+
 }

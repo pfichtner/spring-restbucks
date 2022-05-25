@@ -16,12 +16,13 @@
 package org.springsource.restbucks.payment.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
+import static org.springsource.restbucks.order.OrderTestUtils.existingOrderWithStatus;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.RepresentationModel;
 import org.springsource.restbucks.TransactionalIntegrationTest;
-import org.springsource.restbucks.order.Order.Status;
 import org.springsource.restbucks.order.OrderRepository;
 import org.springsource.restbucks.payment.CreditCardNumber;
 import org.springsource.restbucks.payment.web.PaymentController.PaymentForm;
@@ -40,8 +41,8 @@ class PaymentControllerIntegrationTest {
 	@Test
 	void processesPayment() throws Exception {
 		// Given
-		var order = orders.findByStatus(Status.PAYMENT_EXPECTED).get(0);
-
+		var order = orders.save(existingOrderWithStatus(PAYMENT_EXPECTED));
+		
 		// When
 		var model = new PaymentForm(new CreditCardNumber("1234123412341234"));
 		var entity = controller.submitPayment(order, model);
@@ -50,5 +51,6 @@ class PaymentControllerIntegrationTest {
 		assertThat(entity.getHeaders().getLocation()).isNotNull();
 		assertThat(entity.getBody()).isInstanceOfSatisfying(RepresentationModel.class, m -> assertThat(m.hasLink("order")).isTrue());
 	}
+
 
 }

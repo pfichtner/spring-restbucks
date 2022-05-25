@@ -61,7 +61,7 @@ class Engine {
 	}
 
 
-	public Order loadOrder(long id) {
+	private Order loadOrder(long id) {
 		return repository.findById(id) //
 				.orElseThrow(() -> new IllegalStateException(String.format("No order found for id %s!", id)));
 	}
