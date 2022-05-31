@@ -15,31 +15,49 @@
  */
 package org.springsource.restbucks.order.web;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.UnsupportedEncodingException;
+
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.mediatype.hal.HalLinkRelation;
+import org.springframework.hateoas.mediatype.hal.HalLinkRelation.HalLinkRelationBuilder;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
+import org.springsource.restbucks.Restbucks;
 
 /**
  * Integration test for REST resources exposed by Spring Data REST.
  * 
  * @author Oliver Gierke
+ * @author Peter Fichtner
  */
 class OrderResourceIntegrationTest extends AbstractWebIntegrationTest {
 
+	private static final HalLinkRelationBuilder BUILDER = HalLinkRelation.curieBuilder(Restbucks.CURIE_NAMESPACE);
+
+	private static final LinkRelation ORDERS_REL = BUILDER.relation("orders");
+
 	@Test
 	void exposesOrdersResourceViaRootResource() throws Exception {
-		mvc.perform(get("/")).//
-				andDo(print()).//
-				andExpect(status().isOk()). //
-				andExpect(content().contentTypeCompatibleWith(HAL_JSON)). //
-				andExpect(jsonPath("$._links.restbucks:orders.href", notNullValue()));
+		assertHasOrdersLink(getRoot());
 	}
+
+	private MockHttpServletResponse getRoot() throws Exception {
+		return mvc.perform(get("/")) //
+				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andExpect(content().contentTypeCompatibleWith(HAL_JSON)) //
+				.andReturn().getResponse();
+	}
+
+	private void assertHasOrdersLink(MockHttpServletResponse response) throws UnsupportedEncodingException {
+		getDiscovererFor(response).findLinksWithRel(ORDERS_REL, response.getContentAsString());
+	}
+
 }
