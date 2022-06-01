@@ -89,9 +89,10 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
 		var orders = discoverOrdersResource(root);
 		var order = accessFirstOrder(orders);
-		order = triggerPayment(order);
-		order = pollUntilOrderHasReceiptLink(order);
-		var receipt = takeReceipt(order);
+		var paidOrder = triggerPayment(order);
+		tryCheatCancelation(order); // TODO Nicht Aufgabe dieses Tests
+		paidOrder = pollUntilOrderHasReceiptLink(paidOrder);
+		var receipt = takeReceipt(paidOrder);
 
 		verifyOrderTaken(receipt);
 	}
@@ -104,9 +105,10 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var root = accessRootResource();
 
 		var order = createNewOrder(root);
-		order = triggerPayment(order);
-		order = pollUntilOrderHasReceiptLink(order);
-		var receipt = takeReceipt(order);
+		var paidOrder = triggerPayment(order);
+		tryCheatCancelation(order); // TODO Nicht Aufgabe dieses Tests
+		paidOrder = pollUntilOrderHasReceiptLink(paidOrder);
+		var receipt = takeReceipt(paidOrder);
 
 		verifyOrderTaken(receipt);
 	}
@@ -241,12 +243,17 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
 		LOG.info("Payment triggered…");
 
+		return result;
+	}
+
+	private void tryCheatCancelation(MockHttpServletResponse order) throws Exception {
+		String content = order.getContentAsString();
+		LinkDiscoverer discoverer = getDiscovererFor(order);
+		
 		// Make sure we cannot cheat and cancel the order after it has been payed
 		LOG.info("Faking a cancel request to make sure it's forbidden…");
 		Link selfLink = discoverer.findRequiredLinkWithRel(SELF, content);
 		mvc.perform(delete(selfLink.getHref())).andExpect(status().isMethodNotAllowed());
-
-		return result;
 	}
 
 	/**
