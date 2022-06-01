@@ -89,10 +89,11 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
 		var orders = discoverOrdersResource(root);
 		var order = accessFirstOrder(orders);
-		var paidOrder = triggerPayment(order);
-		tryCheatCancelation(order); // TODO Nicht Aufgabe dieses Tests
-		paidOrder = pollUntilOrderHasReceiptLink(paidOrder);
-		var receipt = takeReceipt(paidOrder);
+		var orderBeforePayment = order;
+		order = triggerPayment(order);
+		tryCheatCancelation(orderBeforePayment); // TODO Nicht Aufgabe dieses Tests
+		order = pollUntilOrderHasReceiptLink(order);
+		var receipt = takeReceipt(order);
 
 		verifyOrderTaken(receipt);
 	}
@@ -105,10 +106,11 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var root = accessRootResource();
 
 		var order = createNewOrder(root);
-		var paidOrder = triggerPayment(order);
-		tryCheatCancelation(order); // TODO Nicht Aufgabe dieses Tests
-		paidOrder = pollUntilOrderHasReceiptLink(paidOrder);
-		var receipt = takeReceipt(paidOrder);
+		var orderBeforePayment = order;
+		order = triggerPayment(order);
+		tryCheatCancelation(orderBeforePayment); // TODO Nicht Aufgabe dieses Tests
+		order = pollUntilOrderHasReceiptLink(order);
+		var receipt = takeReceipt(order);
 
 		verifyOrderTaken(receipt);
 	}
@@ -203,6 +205,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		LOG.info(String.format("Discovered self link pointing to %s… Following", orderLink));
 
 		return mvc.perform(get(orderLink.getHref())) //
+				// TODO Nicht Aufgabe dieses Tests
 				.andExpect(linkWithRelIsPresent(SELF)) //
 				.andExpect(linkWithRelIsPresent(CANCEL_REL)) //
 				.andExpect(linkWithRelIsPresent(UPDATE_REL)) //
@@ -238,6 +241,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				.accept(HAL_JSON));
 
 		var result = action.andExpect(status().isCreated()) //
+				// TODO Nicht Aufgabe dieses Tests
 				.andExpect(linkWithRelIsPresent(ORDER_REL)) //
 				.andReturn().getResponse();
 
@@ -249,7 +253,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	private void tryCheatCancelation(MockHttpServletResponse order) throws Exception {
 		String content = order.getContentAsString();
 		LinkDiscoverer discoverer = getDiscovererFor(order);
-		
+
 		// Make sure we cannot cheat and cancel the order after it has been payed
 		LOG.info("Faking a cancel request to make sure it's forbidden…");
 		Link selfLink = discoverer.findRequiredLinkWithRel(SELF, content);
@@ -378,6 +382,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(ORDER_REL, order.getContentAsString());
 		var response = mvc.perform(get(orderLink.expand().getHref())) //
 				.andExpect(status().isOk()) // //
+				// TODO Nicht Aufgabe dieses Tests
 				.andExpect(linkWithRelIsPresent(SELF)) //
 				.andExpect(linkWithRelIsNotPresent(UPDATE_REL)) //
 				.andExpect(linkWithRelIsNotPresent(CANCEL_REL)) //
