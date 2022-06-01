@@ -91,8 +91,8 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var order = accessFirstOrder(orders);
 		order = triggerPayment(order);
 		order = pollUntilOrderHasReceiptLink(order);
+		
 		var receipt = takeReceipt(order);
-
 		verifyOrderTaken(receipt);
 	}
 
@@ -106,26 +106,9 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var order = createNewOrder(root);
 		order = triggerPayment(order);
 		order = pollUntilOrderHasReceiptLink(order);
+		
 		var receipt = takeReceipt(order);
-
 		verifyOrderTaken(receipt);
-	}
-
-	/**
-	 * Creates a new {@link Order}, triggers payment and tries to cancel it after
-	 * the payment.
-	 */
-	@Test
-	void tryCheatCancelation() throws Exception {
-		var root = accessRootResource();
-
-		var order = createNewOrder(root);
-		triggerPayment(order);
-		verifyCancelationIsNotAllowed(order);
-
-		// wait until ready otherwise Engine will complain because it gets interrupted
-		// during it's sleep time
-		pollUntilOrderHasReceiptLink(order);
 	}
 
 	/**
@@ -134,10 +117,28 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void cancelOrderBeforePayment() throws Exception {
 		var root = accessRootResource();
+
 		var order = createNewOrder(root);
 		cancelOrder(order);
 	}
 
+	/**
+	 * Creates a new {@link Order}, triggers payment and tries to cancel it after
+	 * the payment.
+	 */
+	@Test
+	void tryCheatCancelationAfterPayment() throws Exception {
+		var root = accessRootResource();
+		
+		var order = createNewOrder(root);
+		triggerPayment(order);
+		verifyCancelationIsNotAllowed(order);
+		
+		// wait until ready otherwise Engine will complain because it gets interrupted
+		// during it's sleep time
+		pollUntilOrderHasReceiptLink(order);
+	}
+	
 	/**
 	 * Access the root resource by referencing the well-known URI.
 	 *
