@@ -83,15 +83,13 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * Processes the first existing {@link Order} found.
 	 */
 	@Test
-	void processExistingOrder() throws Exception {
+	void processFirstExistingOrder() throws Exception {
 		var root = accessRootResource();
 		createNewOrder(root);
 
 		var orders = discoverOrdersResource(root);
 		var order = accessFirstOrder(orders);
-		var orderBeforePayment = order;
 		order = triggerPayment(order);
-		tryCheatCancelation(orderBeforePayment); // TODO Nicht Aufgabe dieses Tests
 		order = pollUntilOrderHasReceiptLink(order);
 		var receipt = takeReceipt(order);
 
@@ -106,13 +104,28 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var root = accessRootResource();
 
 		var order = createNewOrder(root);
-		var orderBeforePayment = order;
 		order = triggerPayment(order);
-		tryCheatCancelation(orderBeforePayment); // TODO Nicht Aufgabe dieses Tests
 		order = pollUntilOrderHasReceiptLink(order);
 		var receipt = takeReceipt(order);
 
 		verifyOrderTaken(receipt);
+	}
+
+	/**
+	 * Creates a new {@link Order}, triggers payment and tries to cancel it after
+	 * the payment.
+	 */
+	@Test
+	void tryCheatCancelation() throws Exception {
+		var root = accessRootResource();
+
+		var order = createNewOrder(root);
+		triggerPayment(order);
+		verifyCancelationIsNotAllowed(order);
+
+		// wait until ready otherwise Engine will complain because it gets interrupted
+		// during it's sleep time
+		pollUntilOrderHasReceiptLink(order);
 	}
 
 	/**
@@ -250,7 +263,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		return result;
 	}
 
-	private void tryCheatCancelation(MockHttpServletResponse order) throws Exception {
+	private void verifyCancelationIsNotAllowed(MockHttpServletResponse order) throws Exception {
 		String content = order.getContentAsString();
 		LinkDiscoverer discoverer = getDiscovererFor(order);
 
@@ -382,7 +395,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(ORDER_REL, order.getContentAsString());
 		var response = mvc.perform(get(orderLink.expand().getHref())) //
 				.andExpect(status().isOk()) // //
-				// TODO Nicht Aufgabe dieses Tests
 				.andExpect(linkWithRelIsPresent(SELF)) //
 				.andExpect(linkWithRelIsNotPresent(UPDATE_REL)) //
 				.andExpect(linkWithRelIsNotPresent(CANCEL_REL)) //
