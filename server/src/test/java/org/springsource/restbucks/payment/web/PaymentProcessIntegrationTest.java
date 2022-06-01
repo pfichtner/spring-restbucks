@@ -15,6 +15,7 @@
  */
 package org.springsource.restbucks.payment.web;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
@@ -33,7 +34,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -265,8 +265,9 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 			private final LinkDiscoverer discoverer;
 			private final Link orderLink;
 
-			private String etag;
 			private MockHttpServletResponse response;
+			private int status;
+			private String etag;
 
 			OrderStateUpdater(MockHttpServletResponse order) throws UnsupportedEncodingException {
 				String content = order.getContentAsString();
@@ -274,27 +275,42 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				orderLink = discoverer.findRequiredLinkWithRel(ORDER_REL, content);
 			}
 
-			void doUpdate() throws Exception {
+			OrderStateUpdater doUpdate() throws Exception {
 				ResultActions action = mvc.perform(get(orderLink.expand().getHref()).headers(headers()));
 				response = action.andReturn().getResponse();
 
-				int status = response.getStatus();
+				status = response.getStatus();
 				etag = response.getHeader("ETag");
-
 				LOG.info(String.format("Received %s with ETag of %s…", status, etag));
 
+				verifyContentAsExpected(action);
+				return this;
+			}
+
+			boolean receiptLinkIsPresent() throws UnsupportedEncodingException {
+				return status == HttpStatus.OK.value()
+						&& discoverer.findLinkWithRel(RECEIPT_REL, response.getContentAsString()).isPresent();
+			}
+
+			// TODO Nicht Aufgabe dieses Tests
+			void verifyContentAsExpected(ResultActions action) throws Exception {
 				if (status == HttpStatus.OK.value()) {
-					action.andExpect(linkWithRelIsPresent(SELF)) //
-							.andExpect(linkWithRelIsNotPresent(UPDATE_REL)) //
-							.andExpect(linkWithRelIsNotPresent(CANCEL_REL));
+					verifyHasRightLinks(action);
 				} else if (status == HttpStatus.NO_CONTENT.value()) {
-					action.andExpect(content().string(is(emptyOrNullString())));
+					verifyHasNoContent(action);
 				}
 			}
 
-			boolean orderHasReceiptLink() throws UnsupportedEncodingException {
-				return discoverer.findLinkWithRel(RECEIPT_REL, response.getContentAsString()).isPresent();
+			// TODO Nicht Aufgabe dieses Tests
+			void verifyHasRightLinks(ResultActions action) throws Exception {
+				action.andExpect(linkWithRelIsPresent(SELF)) //
+						.andExpect(linkWithRelIsNotPresent(UPDATE_REL)) //
+						.andExpect(linkWithRelIsNotPresent(CANCEL_REL));
+			}
 
+			// TODO Nicht Aufgabe dieses Tests
+			void verifyHasNoContent(ResultActions action) throws Exception {
+				action.andExpect(content().string(is(emptyOrNullString())));
 			}
 
 			HttpHeaders headers() {
@@ -305,18 +321,20 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				return headers;
 			}
 
-		}
-
-		OrderStateUpdater updater = new OrderStateUpdater(order);
-		while (true) {
-			LOG.info("Poll state of order until receipt is ready…");
-			updater.doUpdate();
-			if (updater.orderHasReceiptLink()) {
-				return updater.response;
+			MockHttpServletResponse pollUntilReady()
+					throws UnsupportedEncodingException, Exception, InterruptedException {
+				while (true) {
+					LOG.info("Poll state of order until receipt is ready…");
+					if (doUpdate().receiptLinkIsPresent()) {
+						return response;
+					}
+					SECONDS.sleep(2);
+				}
 			}
-			TimeUnit.SECONDS.sleep(2);
+
 		}
 
+		return new OrderStateUpdater(order).pollUntilReady();
 	}
 
 	/**
