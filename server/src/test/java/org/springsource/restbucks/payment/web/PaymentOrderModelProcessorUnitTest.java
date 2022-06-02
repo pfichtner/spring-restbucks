@@ -21,11 +21,10 @@ import static org.mockito.Mockito.when;
 import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
 import static org.springsource.restbucks.order.Order.Status.READY;
 import static org.springsource.restbucks.order.OrderTestUtils.createExistingOrder;
+import static org.springsource.restbucks.order.OrderTestUtils.createPreparedOrder;
 import static org.springsource.restbucks.order.OrderTestUtils.existingOrderWithStatus;
 import static org.springsource.restbucks.payment.web.PaymentLinks.PAYMENT_REL;
 import static org.springsource.restbucks.payment.web.PaymentLinks.RECEIPT_REL;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,34 +35,27 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.order.Order.Status;
 
 /**
- * Unit test for {@link PaymentOrderModelProcessorUnitTest}.
+ * Unit test for {@link PaymentOrderModelProcessor}.
  *
  * @author Oliver Gierke
  */
 @ExtendWith(MockitoExtension.class)
 class PaymentOrderModelProcessorUnitTest {
 
-	@Mock(lenient = true) //
+	@Mock(lenient = true)
 	PaymentLinks paymentLinks;
 
-	PaymentOrderModelProcessor processor;
+	PaymentOrderModelProcessor sut;
 	Link paymentLink = Link.of("payment", PAYMENT_REL);
 	Link receiptLink = Link.of("receipt", RECEIPT_REL);
 
 	@BeforeEach
 	void setUp() {
-		HttpServletRequest request = new MockHttpServletRequest();
-		ServletRequestAttributes requestAttributes = new ServletRequestAttributes(request);
-		RequestContextHolder.setRequestAttributes(requestAttributes);
-
-		processor = new PaymentOrderModelProcessor(paymentLinks);
+		sut = new PaymentOrderModelProcessor(paymentLinks);
 		when(paymentLinks.getPaymentLink(any(Order.class))).thenReturn(paymentLink);
 		when(paymentLinks.getReceiptLink(any(Order.class))).thenReturn(receiptLink);
 	}
@@ -72,25 +64,21 @@ class PaymentOrderModelProcessorUnitTest {
 	@EnumSource(value = Status.class)
 	void doesNotAddLinksForNeitherFreshNorUnfinishedOrders(Status status) {
 		if (status != READY && status != PAYMENT_EXPECTED) {
-			EntityModel<Order> resource = processor.process(EntityModel.of(existingOrderWithStatus(status)));
-			assertThat(resource.hasLinks()).isFalse();
+			EntityModel<Order> resource = sut.process(EntityModel.of(existingOrderWithStatus(status)));
+			assertThat(resource.getLink(PAYMENT_REL)).isEmpty();
+			assertThat(resource.getLink(RECEIPT_REL)).isEmpty();
 		}
 	}
 
 	@Test
 	void addsPaymentLinkForFreshOrder() {
-		EntityModel<Order> resource = processor.process(EntityModel.of(createExistingOrder()));
+		EntityModel<Order> resource = sut.process(EntityModel.of(createExistingOrder()));
 		assertThat(resource.getLink(PAYMENT_REL)).hasValue(paymentLink);
 	}
 
 	@Test
 	void addsReceiptLinkForPaidOrder() {
-		Order order = createExistingOrder();
-		order.markPaid();
-		order.markInPreparation();
-		order.markPrepared();
-
-		EntityModel<Order> resource = processor.process(EntityModel.of(order));
+		EntityModel<Order> resource = sut.process(EntityModel.of(createPreparedOrder()));
 		assertThat(resource.getLink(RECEIPT_REL)).hasValue(receiptLink);
 	}
 

@@ -43,4 +43,12 @@ public class OrderTestUtils {
 	public static Order createOrder() {
 		return new Order(Location.TAKE_AWAY, new LineItem("English breakfast", Money.of(2.70, EURO)));
 	}
+
+	public static Order createPreparedOrder() {
+		Order order = createExistingOrder();
+		order.markPaid();
+		order.markInPreparation();
+		order.markPrepared();
+		return order;
+	}
 }
