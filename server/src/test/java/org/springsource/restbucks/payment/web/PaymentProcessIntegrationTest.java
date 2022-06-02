@@ -74,7 +74,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	private static final LinkRelation ORDER_REL = BUILDER.relation("order");
 	private static final LinkRelation RECEIPT_REL = BUILDER.relation("receipt");
 	private static final LinkRelation CANCEL_REL = BUILDER.relation("cancel");
-	private static final LinkRelation UPDATE_REL = BUILDER.relation("update");
 	private static final LinkRelation PAYMENT_REL = BUILDER.relation("payment");
 
 	private static final String FIRST_ORDER_EXPRESSION = String.format("$._embedded.%s[0]", ORDERS_REL);
@@ -89,9 +88,10 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
 		var orders = discoverOrdersResource(root);
 		var order = accessFirstOrder(orders);
-		order = triggerPayment(order);
+		var payment = triggerPayment(order);
+		order = orderOf(payment);
 		order = pollUntilOrderHasReceiptLink(order);
-		
+
 		var receipt = takeReceipt(order);
 		verifyOrderTaken(receipt);
 	}
@@ -104,9 +104,10 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var root = accessRootResource();
 
 		var order = createNewOrder(root);
-		order = triggerPayment(order);
+		var payment = triggerPayment(order);
+		order = orderOf(payment);
 		order = pollUntilOrderHasReceiptLink(order);
-		
+
 		var receipt = takeReceipt(order);
 		verifyOrderTaken(receipt);
 	}
@@ -129,16 +130,16 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void tryCheatCancelationAfterPayment() throws Exception {
 		var root = accessRootResource();
-		
+
 		var order = createNewOrder(root);
 		triggerPayment(order);
 		verifyCancelationIsNotAllowed(order);
-		
+
 		// wait until ready otherwise Engine will complain because it gets interrupted
 		// during it's sleep time
 		pollUntilOrderHasReceiptLink(order);
 	}
-	
+
 	/**
 	 * Access the root resource by referencing the well-known URI.
 	 *
@@ -218,21 +219,13 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		LOG.info(String.format("Picking first order using JSONPath expression %s…", FIRST_ORDER_EXPRESSION));
 		LOG.info(String.format("Discovered self link pointing to %s… Following", orderLink));
 
-		return mvc.perform(get(orderLink.getHref())) //
-				// TODO Nicht Aufgabe dieses Tests
-				.andExpect(linkWithRelIsPresent(SELF)) //
-				.andExpect(linkWithRelIsPresent(CANCEL_REL)) //
-				.andExpect(linkWithRelIsPresent(UPDATE_REL)) //
-				.andExpect(linkWithRelIsPresent(PAYMENT_REL)) //
-				.andReturn().getResponse();
+		return mvc.perform(get(orderLink.getHref())).andReturn().getResponse();
 	}
 
 	/**
 	 * Triggers the payment of an {@link Order} by following the {@code payment}
 	 * link and submitting a credit card number to it. Verifies that we get a
-	 * {@code 201 Created} and the response contains an {@code order} link. After
-	 * the payment has been triggered we fake a cancellation to make sure it is
-	 * rejected with a {@code 404 Not found}.
+	 * {@code 201 Created} and the response contains an {@code order} link.
 	 *
 	 * @param order
 	 * @return
@@ -248,22 +241,25 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		assertThat(paymentLink).isNotNull();
 
 		LOG.info("Triggering payment…");
-
 		ResultActions action = mvc.perform(put(paymentLink.getHref())//
 				.content("{ \"number\" : \"1234123412341234\" }")//
 				.contentType(APPLICATION_JSON)//
 				.accept(HAL_JSON));
 
-		var result = action.andExpect(status().isCreated()) //
-				// TODO Nicht Aufgabe dieses Tests
-				.andExpect(linkWithRelIsPresent(ORDER_REL)) //
-				.andReturn().getResponse();
-
-		LOG.info("Payment triggered…");
-
-		return result;
+		try {
+			return action.andExpect(status().isCreated()).andReturn().getResponse();
+		} finally {
+			LOG.info("Payment triggered…");
+		}
 	}
 
+	/**
+	 * Fake a cancellation to make sure it is rejected with a
+	 * {@link HttpStatus#METHOD_NOT_ALLOWED}.
+	 * 
+	 * @param order
+	 * @throws Exception
+	 */
 	private void verifyCancelationIsNotAllowed(MockHttpServletResponse order) throws Exception {
 		String content = order.getContentAsString();
 		LinkDiscoverer discoverer = getDiscovererFor(order);
@@ -274,12 +270,20 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		mvc.perform(delete(selfLink.getHref())).andExpect(status().isMethodNotAllowed());
 	}
 
+	private MockHttpServletResponse orderOf(MockHttpServletResponse payment) throws Exception {
+		String content = payment.getContentAsString();
+		LinkDiscoverer discoverer = getDiscovererFor(payment);
+		Link orderLink = discoverer.findRequiredLinkWithRel(ORDER_REL, content);
+
+		return mvc.perform(get(orderLink.expand().getHref())).andReturn().getResponse();
+	}
+
 	/**
 	 * Polls the order resource every 2 seconds and uses an {@code If-None-Match}
 	 * header alongside the {@code ETag} of the first response to avoid sending the
 	 * representation over and over again.
 	 *
-	 * @param order
+	 * @param payment
 	 * @return
 	 * @throws Exception
 	 */
@@ -297,7 +301,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 			OrderStateUpdater(MockHttpServletResponse order) throws UnsupportedEncodingException {
 				String content = order.getContentAsString();
 				discoverer = getDiscovererFor(order);
-				orderLink = discoverer.findRequiredLinkWithRel(ORDER_REL, content);
+				orderLink = discoverer.findRequiredLinkWithRel(SELF, content);
 			}
 
 			OrderStateUpdater doUpdate() throws Exception {
@@ -308,34 +312,16 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				etag = response.getHeader("ETag");
 				LOG.info(String.format("Received %s with ETag of %s…", status, etag));
 
-				verifyContentAsExpected(action);
+				// TODO Nicht Aufgabe dieses Tests
+				if (status == HttpStatus.NO_CONTENT.value()) {
+					action.andExpect(content().string(is(emptyOrNullString())));
+				}
 				return this;
 			}
 
 			boolean receiptLinkIsPresent() throws UnsupportedEncodingException {
 				return status == HttpStatus.OK.value()
 						&& discoverer.findLinkWithRel(RECEIPT_REL, response.getContentAsString()).isPresent();
-			}
-
-			// TODO Nicht Aufgabe dieses Tests
-			void verifyContentAsExpected(ResultActions action) throws Exception {
-				if (status == HttpStatus.OK.value()) {
-					verifyHasRightLinks(action);
-				} else if (status == HttpStatus.NO_CONTENT.value()) {
-					verifyHasNoContent(action);
-				}
-			}
-
-			// TODO Nicht Aufgabe dieses Tests
-			void verifyHasRightLinks(ResultActions action) throws Exception {
-				action.andExpect(linkWithRelIsPresent(SELF)) //
-						.andExpect(linkWithRelIsNotPresent(UPDATE_REL)) //
-						.andExpect(linkWithRelIsNotPresent(CANCEL_REL));
-			}
-
-			// TODO Nicht Aufgabe dieses Tests
-			void verifyHasNoContent(ResultActions action) throws Exception {
-				action.andExpect(content().string(is(emptyOrNullString())));
 			}
 
 			HttpHeaders headers() {
@@ -385,21 +371,10 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				.andReturn().getResponse();
 	}
 
-	/**
-	 * Follows the {@code order} link and asserts only the self link being present
-	 * so that no further navigation is possible anymore.
-	 *
-	 * @param order
-	 * @throws Exception
-	 */
 	private void verifyOrderTaken(MockHttpServletResponse order) throws Exception {
 		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(ORDER_REL, order.getContentAsString());
 		var response = mvc.perform(get(orderLink.expand().getHref())) //
 				.andExpect(status().isOk()) // //
-				.andExpect(linkWithRelIsPresent(SELF)) //
-				.andExpect(linkWithRelIsNotPresent(UPDATE_REL)) //
-				.andExpect(linkWithRelIsNotPresent(CANCEL_REL)) //
-				.andExpect(linkWithRelIsNotPresent(PAYMENT_REL)) //
 				.andExpect(jsonPath("$.status", is("Delivered"))) //
 				.andReturn().getResponse();
 
