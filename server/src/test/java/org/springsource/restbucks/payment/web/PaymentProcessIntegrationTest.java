@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.hateoas.IanaLinkRelations.SELF;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -35,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
-import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -318,8 +318,8 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				etag = response.getHeader("ETag");
 				LOG.info(String.format("Received %s with ETag of %s…", status, etag));
 
-				// TODO Nicht Aufgabe dieses Tests
-				if (status == HttpStatus.NO_CONTENT.value()) {
+				// TODO Nicht Aufgabe dieses Tests. Falls fachlich wichtig/relevant: Auslagerung in eigenen Test
+				if (statusIs(NO_CONTENT)) {
 					action.andExpect(content().string(is(emptyOrNullString())));
 				}
 				return this;
