@@ -332,8 +332,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				return headers;
 			}
 
-			MockHttpServletResponse pollUntilReady()
-					throws UnsupportedEncodingException, Exception, InterruptedException {
+			MockHttpServletResponse pollUntilReady() throws Exception {
 				while (true) {
 					LOG.info("Poll state of order until receipt is ready…");
 					if (doUpdate().receiptLinkIsPresent()) {
