@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.hateoas.IanaLinkRelations.SELF;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -88,12 +90,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
 		var orders = discoverOrdersResource(root);
 		var order = accessFirstOrder(orders);
-		var payment = triggerPayment(order);
-		order = orderOf(payment);
-		order = pollUntilOrderHasReceiptLink(order);
-
-		var receipt = takeReceipt(order);
-		verifyOrderTaken(receipt);
+		payAndTakeReceipt(order);
 	}
 
 	/**
@@ -104,6 +101,10 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var root = accessRootResource();
 
 		var order = createNewOrder(root);
+		payAndTakeReceipt(order);
+	}
+
+	void payAndTakeReceipt(MockHttpServletResponse order) throws Exception {
 		var payment = triggerPayment(order);
 		order = orderOf(payment);
 		order = pollUntilOrderHasReceiptLink(order);
@@ -291,17 +292,22 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
 		class OrderStateUpdater {
 
-			private final LinkDiscoverer discoverer;
 			private final Link orderLink;
 
 			private MockHttpServletResponse response;
 			private int status;
 			private String etag;
 
-			OrderStateUpdater(MockHttpServletResponse order) throws UnsupportedEncodingException {
-				String content = order.getContentAsString();
-				discoverer = getDiscovererFor(order);
-				orderLink = discoverer.findRequiredLinkWithRel(SELF, content);
+			OrderStateUpdater(Link orderLink) throws UnsupportedEncodingException {
+				this.orderLink = orderLink;
+			}
+
+			String contentAsString() {
+				try {
+					return response.getContentAsString();
+				} catch (UnsupportedEncodingException e) {
+					throw new RuntimeException(e);
+				}
 			}
 
 			OrderStateUpdater doUpdate() throws Exception {
@@ -319,11 +325,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				return this;
 			}
 
-			boolean receiptLinkIsPresent() throws UnsupportedEncodingException {
-				return status == HttpStatus.OK.value()
-						&& discoverer.findLinkWithRel(RECEIPT_REL, response.getContentAsString()).isPresent();
-			}
-
 			HttpHeaders headers() {
 				HttpHeaders headers = new HttpHeaders();
 				if (etag != null) {
@@ -332,19 +333,26 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				return headers;
 			}
 
-			MockHttpServletResponse pollUntilReady() throws Exception {
-				while (true) {
-					LOG.info("Poll state of order until receipt is ready…");
-					if (doUpdate().receiptLinkIsPresent()) {
-						return response;
-					}
-					SECONDS.sleep(2);
-				}
+			boolean statusIs(HttpStatus httpStatus) {
+				return status == httpStatus.value();
 			}
 
 		}
 
-		return new OrderStateUpdater(order).pollUntilReady();
+		var discoverer = getDiscovererFor(order);
+		var orderLink = discoverer.findRequiredLinkWithRel(SELF, order.getContentAsString());
+
+		OrderStateUpdater updater = new OrderStateUpdater(orderLink);
+		while (true) {
+			LOG.info("Poll state of order until receipt is ready…");
+			updater.doUpdate();
+			if (updater.statusIs(OK)
+					&& discoverer.findLinkWithRel(RECEIPT_REL, updater.contentAsString()).isPresent()) {
+				return updater.response;
+			}
+			SECONDS.sleep(2);
+		}
+
 	}
 
 	/**
