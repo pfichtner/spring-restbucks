@@ -295,7 +295,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 			private final Link orderLink;
 
 			private MockHttpServletResponse response;
-			private int status;
 			private String etag;
 
 			OrderStateUpdater(Link orderLink) throws UnsupportedEncodingException {
@@ -314,9 +313,8 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 				ResultActions action = mvc.perform(get(orderLink.expand().getHref()).headers(headers()));
 				response = action.andReturn().getResponse();
 
-				status = response.getStatus();
 				etag = response.getHeader("ETag");
-				LOG.info(String.format("Received %s with ETag of %s…", status, etag));
+				LOG.info(String.format("Received %s with ETag of %s…", response.getStatus(), etag));
 
 				// TODO Nicht Aufgabe dieses Tests. Falls fachlich wichtig/relevant: Auslagerung in eigenen Test
 				if (statusIs(NO_CONTENT)) {
@@ -334,7 +332,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 			}
 
 			boolean statusIs(HttpStatus httpStatus) {
-				return status == httpStatus.value();
+				return response.getStatus() == httpStatus.value();
 			}
 
 		}
