@@ -40,6 +40,7 @@ import org.springsource.restbucks.payment.CreditCard;
 import org.springsource.restbucks.payment.CreditCardNumber;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -72,7 +73,6 @@ class JacksonCustomizations {
 	static class RestbucksModule extends SimpleModule {
 
 		public RestbucksModule() {
-
 			setMixInAnnotation(AbstractAggregateRoot.class, AggregateRootMixin.class);
 			setMixInAnnotation(Order.class, RestbucksModule.OrderMixin.class);
 			setMixInAnnotation(LineItem.class, LineItemMixin.class);
@@ -84,20 +84,22 @@ class JacksonCustomizations {
 			abstract @JsonIgnore List<Object> getDomainEvents();
 		}
 
-		@JsonAutoDetect(isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+		@JsonAutoDetect(isGetterVisibility = Visibility.NONE)
 		static abstract class OrderMixin {
 
 			@JsonCreator
 			public OrderMixin(Collection<LineItem> lineItems, Location location) {}
+			
 		}
 
 		static abstract class LineItemMixin {
 
 			@JsonCreator
 			public LineItemMixin(String name, int quantity, Milk milk, Size size, MonetaryAmount price) {}
+
 		}
 
-		@JsonAutoDetect(isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+		@JsonAutoDetect(isGetterVisibility = Visibility.NONE)
 		static abstract class CreditCardMixin {}
 
 		@JsonSerialize(using = ToStringSerializer.class)
@@ -108,7 +110,6 @@ class JacksonCustomizations {
 	static class MoneyModule extends SimpleModule {
 
 		public MoneyModule() {
-
 			addSerializer(MonetaryAmount.class, new MonetaryAmountSerializer());
 			addValueInstantiator(MonetaryAmount.class, new MoneyInstantiator());
 		}
@@ -122,77 +123,56 @@ class JacksonCustomizations {
 		static class MonetaryAmountSerializer extends StdSerializer<MonetaryAmount>
 				implements JsonSchemaPropertyCustomizer {
 
-			private static final Pattern MONEY_PATTERN;
+			private static final Pattern moneyPattern = Pattern.compile(moneyPattern());
 
-			static {
-
-				StringBuilder builder = new StringBuilder();
-
-				builder.append("(?=.)^"); // Start
-				builder.append("[A-Z]{3}?"); // 3-digit currency code
-				builder.append("\\s"); // single whitespace character
-				builder.append("(([1-9][0-9]{0,2}(,[0-9]{3})*)|[0-9]+)?"); // digits with optional grouping by "," every 3)
-				builder.append("(\\.[0-9]{1,2})?$"); // End with a dot and two digits
-
-				MONEY_PATTERN = Pattern.compile(builder.toString());
+			private static String moneyPattern() {
+				return "" //
+						+ "(?=.)^" // Start
+						+ "[A-Z]{3}?" // 3-digit currency code
+						+ "\\s" // single whitespace character
+						+ "(([1-9][0-9]{0,2}(,[0-9]{3})*)|[0-9]+)?" // digits with optional grouping by "," every 3)
+						+ "(\\.[0-9]{1,2})?$"; // End with a dot and two digits
 			}
 
 			public MonetaryAmountSerializer() {
 				super(MonetaryAmount.class);
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.ser.std.StdSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)
-			 */
 			@Override
 			public void serialize(MonetaryAmount value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-
-				if (value != null) {
-					jgen.writeString(MonetaryFormats.getAmountFormat(LocaleContextHolder.getLocale()).format(value));
-				} else {
+				if (value == null) {
 					jgen.writeNull();
+				} else {
+					jgen.writeString(MonetaryFormats.getAmountFormat(LocaleContextHolder.getLocale()).format(value));
 				}
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see org.springframework.data.rest.webmvc.json.JsonSchemaPropertyCustomizer#customize(org.springframework.data.rest.webmvc.json.JsonSchema.JsonSchemaProperty, org.springframework.data.util.TypeInformation)
-			 */
 			@Override
 			public JsonSchemaProperty customize(JsonSchemaProperty property, TypeInformation<?> type) {
-				return property.withType(String.class).withPattern(MONEY_PATTERN);
+				return property.withType(String.class).withPattern(moneyPattern);
 			}
+			
 		}
 
 		static class MoneyInstantiator extends ValueInstantiator {
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.deser.ValueInstantiator#getValueTypeDesc()
-			 */
 			@Override
 			public String getValueTypeDesc() {
 				return MonetaryAmount.class.toString();
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.deser.ValueInstantiator#canCreateFromString()
-			 */
 			@Override
 			public boolean canCreateFromString() {
 				return true;
 			}
 
-			/*
-			 * (non-Javadoc)
-			 * @see com.fasterxml.jackson.databind.deser.ValueInstantiator#createFromString(com.fasterxml.jackson.databind.DeserializationContext, java.lang.String)
-			 */
 			@Override
 			public Object createFromString(DeserializationContext context, String value) throws IOException {
 				return Money.parse(value, MonetaryFormats.getAmountFormat(LocaleContextHolder.getLocale()));
 			}
+			
 		}
+
 	}
+
 }
