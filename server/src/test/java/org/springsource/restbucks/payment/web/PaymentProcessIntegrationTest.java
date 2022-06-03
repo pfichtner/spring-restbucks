@@ -15,21 +15,20 @@
  */
 package org.springsource.restbucks.payment.web;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.hateoas.IanaLinkRelations.SELF;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.NOT_MODIFIED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,6 +46,7 @@ import org.springframework.hateoas.mediatype.hal.HalLinkRelation.HalLinkRelation
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
 import org.springsource.restbucks.Restbucks;
@@ -104,15 +104,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		payAndTakeReceipt(order);
 	}
 
-	void payAndTakeReceipt(MockHttpServletResponse order) throws Exception {
-		var payment = triggerPayment(order);
-		order = orderOf(payment);
-		order = pollUntilOrderHasReceiptLink(order);
-
-		var receipt = takeReceipt(order);
-		verifyOrderTaken(receipt);
-	}
-
 	/**
 	 * Creates a new {@link Order} and cancels it right away.
 	 */
@@ -139,6 +130,34 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		// wait until ready otherwise Engine will complain because it gets interrupted
 		// during it's sleep time
 		pollUntilOrderHasReceiptLink(order);
+	}
+
+	/**
+	 * Verifies that there is no content on HTTP Status code
+	 * {@link HttpStatus#NOT_MODIFIED}.
+	 */
+	@Test
+	void verifyNoContent() throws Exception {
+		var root = accessRootResource();
+
+		var order = createNewOrder(root);
+		var payment = triggerPayment(order);
+		order = orderOf(payment);
+
+		var updater = orderStateUpdater(order);
+		while (!updater.doUpdate().statusIs(NOT_MODIFIED)) {
+			MILLISECONDS.sleep(250);
+		}
+		assertThat(updater.contentAsString()).isEmpty();
+	}
+
+	void payAndTakeReceipt(MockHttpServletResponse order) throws Exception {
+		var payment = triggerPayment(order);
+		order = orderOf(payment);
+		order = pollUntilOrderHasReceiptLink(order);
+
+		var receipt = takeReceipt(order);
+		verifyOrderTaken(receipt);
 	}
 
 	/**
@@ -279,6 +298,12 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		return mvc.perform(get(orderLink.expand().getHref())).andReturn().getResponse();
 	}
 
+	private OrderStateUpdater orderStateUpdater(MockHttpServletResponse order) throws UnsupportedEncodingException {
+		var discoverer = getDiscovererFor(order);
+		var orderLink = discoverer.findRequiredLinkWithRel(SELF, order.getContentAsString());
+		return new OrderStateUpdater(mvc, orderLink);
+	}
+
 	/**
 	 * Polls the order resource every 2 seconds and uses an {@code If-None-Match}
 	 * header alongside the {@code ETag} of the first response to avoid sending the
@@ -288,59 +313,54 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @return
 	 * @throws Exception
 	 */
-	private MockHttpServletResponse pollUntilOrderHasReceiptLink(MockHttpServletResponse order) throws Exception {
+	private static class OrderStateUpdater {
 
-		class OrderStateUpdater {
+		private final MockMvc mockMvc;
+		private final Link orderLink;
 
-			private final Link orderLink;
+		private MockHttpServletResponse response;
 
-			private MockHttpServletResponse response;
-			private String etag;
-
-			OrderStateUpdater(Link orderLink) throws UnsupportedEncodingException {
-				this.orderLink = orderLink;
-			}
-
-			String contentAsString() {
-				try {
-					return response.getContentAsString();
-				} catch (UnsupportedEncodingException e) {
-					throw new RuntimeException(e);
-				}
-			}
-
-			OrderStateUpdater doUpdate() throws Exception {
-				ResultActions action = mvc.perform(get(orderLink.expand().getHref()).headers(headers()));
-				response = action.andReturn().getResponse();
-
-				etag = response.getHeader("ETag");
-				LOG.info(String.format("Received %s with ETag of %s…", response.getStatus(), etag));
-
-				// TODO Nicht Aufgabe dieses Tests. Falls fachlich wichtig/relevant: Auslagerung in eigenen Test
-				if (statusIs(NO_CONTENT)) {
-					action.andExpect(content().string(is(emptyOrNullString())));
-				}
-				return this;
-			}
-
-			HttpHeaders headers() {
-				HttpHeaders headers = new HttpHeaders();
-				if (etag != null) {
-					headers.setIfNoneMatch(etag);
-				}
-				return headers;
-			}
-
-			boolean statusIs(HttpStatus httpStatus) {
-				return response.getStatus() == httpStatus.value();
-			}
-
+		OrderStateUpdater(MockMvc mockMvc, Link orderLink) throws UnsupportedEncodingException {
+			this.mockMvc = mockMvc;
+			this.orderLink = orderLink;
 		}
 
-		var discoverer = getDiscovererFor(order);
-		var orderLink = discoverer.findRequiredLinkWithRel(SELF, order.getContentAsString());
+		String contentAsString() {
+			try {
+				return response.getContentAsString();
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
-		OrderStateUpdater updater = new OrderStateUpdater(orderLink);
+		OrderStateUpdater doUpdate() throws Exception {
+			response = mockMvc.perform(get(orderLink.expand().getHref()).headers(headers())).andReturn().getResponse();
+			LOG.info(String.format("Received %s with ETag of %s…", response.getStatus(), etag()));
+			return this;
+		}
+
+		String etag() {
+			return response == null ? null : response.getHeader("ETag");
+		}
+
+		HttpHeaders headers() {
+			HttpHeaders headers = new HttpHeaders();
+			String etag = etag();
+			if (etag != null) {
+				headers.setIfNoneMatch(etag);
+			}
+			return headers;
+		}
+
+		boolean statusIs(HttpStatus httpStatus) {
+			return response.getStatus() == httpStatus.value();
+		}
+
+	}
+
+	private MockHttpServletResponse pollUntilOrderHasReceiptLink(MockHttpServletResponse order) throws Exception {
+		var discoverer = getDiscovererFor(order);
+		var updater = orderStateUpdater(order);
 		while (true) {
 			LOG.info("Poll state of order until receipt is ready…");
 			updater.doUpdate();
