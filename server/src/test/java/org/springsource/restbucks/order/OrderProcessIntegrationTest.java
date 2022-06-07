@@ -15,34 +15,28 @@
  */
 package org.springsource.restbucks.order;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.hateoas.IanaLinkRelations.SELF;
+import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.nio.file.Files;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.LinkRelation;
-import org.springframework.hateoas.mediatype.hal.HalLinkRelation;
-import org.springframework.hateoas.mediatype.hal.HalLinkRelation.HalLinkRelationBuilder;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
-import org.springsource.restbucks.Restbucks;
 
 import com.jayway.jsonpath.JsonPath;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Integration tests modeling the hypermedia-driven interaction flow against the
@@ -52,12 +46,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author Peter Fichtner
  */
-@Slf4j
 class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
-
-	private static final HalLinkRelationBuilder BUILDER = HalLinkRelation.curieBuilder(Restbucks.CURIE_NAMESPACE);
-
-	private static final LinkRelation ORDERS_REL = BUILDER.relation("orders");
 
 	/**
 	 * Creates a new {@link Order} and replaces that one.
@@ -65,10 +54,10 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void canReplaceOrder() throws Exception {
 		var root = accessRootResource();
-
 		var order = createNewOrder(root);
-		order = replaceOrder(order);
-//		verifyOrderIsXXXXXXXXXXXXXXXXX(order);
+		replaceOrder(order) //
+				.andExpect(jsonPath("$.lineItems.length()", is(0))) //
+				.andExpect(jsonPath("$.location", is("In store")));
 	}
 
 	/**
@@ -77,47 +66,10 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void canUpdateOrder() throws Exception {
 		var root = accessRootResource();
-		
 		var order = createNewOrder(root);
-		order = updateOrder(order);
-//		verifyOrderIsXXXXXXXXXXXXXXXXX(order);
-	}
-
-	/**
-	 * Access the root resource by referencing the well-known URI.
-	 *
-	 * @return the response for the orders resource
-	 * @throws Exception
-	 */
-	private MockHttpServletResponse accessRootResource() throws Exception {
-		LOG.info("Accessing root resource…");
-		return mvc.perform(get("/")).andExpect(status().isOk()).andReturn().getResponse();
-	}
-
-	/**
-	 * Creates a new {@link Order} by looking up the orders link from the source and
-	 * posting the content of {@code orders.json} to it. Verifies we receive a
-	 * {@code 201 Created} and a {@code Location} header. Follows the location
-	 * header to retrieve and verify the {@link Order} just created.
-	 *
-	 * @param root
-	 * @return
-	 * @throws Exception
-	 */
-	private MockHttpServletResponse createNewOrder(MockHttpServletResponse root) throws Exception {
-		String content = root.getContentAsString();
-
-		Link ordersLink = getDiscovererFor(root).findRequiredLinkWithRel(ORDERS_REL, content);
-
-		ClassPathResource resource = new ClassPathResource("order.json");
-		byte[] data = Files.readAllBytes(resource.getFile().toPath());
-
-		var response = mvc.perform(post(ordersLink.expand().getHref()).contentType(APPLICATION_JSON).content(data)) //
-				.andExpect(status().isCreated()) //
-				.andExpect(header().string("Location", is(notNullValue()))) //
-				.andReturn().getResponse();
-
-		return mvc.perform(get(response.getHeader("Location"))).andReturn().getResponse();
+		updateOrder(order) //
+				.andExpect(jsonPath("$.lineItems.length()", is(0))) //
+				.andExpect(jsonPath("$.location", is("In store")));
 	}
 
 	/**
@@ -127,19 +79,28 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @return
 	 * @throws Exception
 	 */
-	private MockHttpServletResponse updateOrder(MockHttpServletResponse order) throws Exception {
+	private ResultActions updateOrder(MockHttpServletResponse order) throws Exception {
 		String content = order.getContentAsString();
 
 		String location = JsonPath.parse(content).read(JsonPath.compile("$.location"), String.class).toString();
 
 		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
 
-		byte[] data = ("{ \"location\": \"" + switchLocation(location) + "\" }").getBytes();
-		mvc.perform(patch(orderLink.expand().getHref()).contentType(APPLICATION_JSON).content(data)) //
-				.andExpect(status().isNoContent()) //
+		byte[] data;
+		
+		data = ("{ \"lineItems\": [] }").getBytes();
+		mvc.perform(patch(orderLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON).content(data)) //
+				.andExpect(status().isOk()) //
 				.andReturn().getResponse();
 
-		return mvc.perform(get(orderLink.expand().getHref())).andExpect(status().isOk()).andReturn().getResponse();
+		data = ("{ \"location\": \"" + switchLocation(location) + "\" }").getBytes();
+		var response = mvc
+				.perform(patch(orderLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON)
+						.content(data)) //
+				.andExpect(status().isOk()) //
+				.andReturn().getResponse();
+		assertThatSelfLinkHasntChanged(order, orderLink, response);
+		return readOrder(orderLink);
 	}
 
 	/**
@@ -149,19 +110,28 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @return
 	 * @throws Exception
 	 */
-	private MockHttpServletResponse replaceOrder(MockHttpServletResponse order) throws Exception {
+	private ResultActions replaceOrder(MockHttpServletResponse order) throws Exception {
 		String content = order.getContentAsString();
 
 		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
 
-		ClassPathResource resource = new ClassPathResource("order.json");
-		byte[] data = Files.readAllBytes(resource.getFile().toPath());
-
-		mvc.perform(put(orderLink.expand().getHref()).contentType(APPLICATION_JSON).content(data)) //
-				.andExpect(status().isNoContent()) //
+		byte[] data = "{ \"lineItems\": [], \"location\": \"IN_STORE\" }".getBytes();
+		var response = mvc
+				.perform(put(orderLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON).content(data)) //
+				.andExpect(status().isOk()) //
 				.andReturn().getResponse();
+		assertThatSelfLinkHasntChanged(order, orderLink, response);
+		return readOrder(orderLink);
+	}
 
-		return mvc.perform(get(orderLink.expand().getHref())).andExpect(status().isOk()).andReturn().getResponse();
+	public void assertThatSelfLinkHasntChanged(MockHttpServletResponse order, Link orderLink,
+			MockHttpServletResponse response) throws UnsupportedEncodingException {
+		assertThat(getDiscovererFor(order).findRequiredLinkWithRel(SELF, response.getContentAsString()))
+				.isEqualTo(orderLink);
+	}
+
+	public ResultActions readOrder(Link orderLink) throws Exception {
+		return mvc.perform(get(orderLink.expand().getHref())).andExpect(status().isOk());
 	}
 
 	private String switchLocation(String location) {

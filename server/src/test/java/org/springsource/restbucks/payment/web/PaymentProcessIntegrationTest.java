@@ -19,7 +19,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.hateoas.IanaLinkRelations.SELF;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.http.HttpStatus.NOT_MODIFIED;
@@ -27,29 +26,22 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.client.LinkDiscoverer;
-import org.springframework.hateoas.mediatype.hal.HalLinkRelation;
-import org.springframework.hateoas.mediatype.hal.HalLinkRelation.HalLinkRelationBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
-import org.springsource.restbucks.Restbucks;
 import org.springsource.restbucks.order.Order;
 
 import com.jayway.jsonpath.JsonPath;
@@ -70,9 +62,6 @@ import net.minidev.json.JSONObject;
 @Slf4j
 class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 
-	private static final HalLinkRelationBuilder BUILDER = HalLinkRelation.curieBuilder(Restbucks.CURIE_NAMESPACE);
-
-	private static final LinkRelation ORDERS_REL = BUILDER.relation("orders");
 	private static final LinkRelation ORDER_REL = BUILDER.relation("order");
 	private static final LinkRelation RECEIPT_REL = BUILDER.relation("receipt");
 	private static final LinkRelation CANCEL_REL = BUILDER.relation("cancel");
@@ -159,44 +148,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var receipt = takeReceipt(order);
 		verifyOrderTaken(receipt);
 	}
-
-	/**
-	 * Access the root resource by referencing the well-known URI.
-	 *
-	 * @return the response for the orders resource
-	 * @throws Exception
-	 */
-	private MockHttpServletResponse accessRootResource() throws Exception {
-		LOG.info("Accessing root resource…");
-		return mvc.perform(get("/")).andExpect(status().isOk()).andReturn().getResponse();
-	}
-
-	/**
-	 * Creates a new {@link Order} by looking up the orders link from the source and
-	 * posting the content of {@code orders.json} to it. Verifies we receive a
-	 * {@code 201 Created} and a {@code Location} header. Follows the location
-	 * header to retrieve and verify the {@link Order} just created.
-	 *
-	 * @param root
-	 * @return
-	 * @throws Exception
-	 */
-	private MockHttpServletResponse createNewOrder(MockHttpServletResponse root) throws Exception {
-		String content = root.getContentAsString();
-
-		Link ordersLink = getDiscovererFor(root).findRequiredLinkWithRel(ORDERS_REL, content);
-
-		ClassPathResource resource = new ClassPathResource("order.json");
-		byte[] data = Files.readAllBytes(resource.getFile().toPath());
-
-		var response = mvc.perform(post(ordersLink.expand().getHref()).contentType(APPLICATION_JSON).content(data)) //
-				.andExpect(status().isCreated()) //
-				.andExpect(header().string("Location", is(notNullValue()))) //
-				.andReturn().getResponse();
-
-		return mvc.perform(get(response.getHeader("Location"))).andReturn().getResponse();
-	}
-
 	/**
 	 * Follows the {@code orders} link returns the {@link Order}s found.
 	 *
