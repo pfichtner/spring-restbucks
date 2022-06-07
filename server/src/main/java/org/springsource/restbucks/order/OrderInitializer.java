@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 class OrderInitializer {
 
 	public static final String WITH_DEMO_DATA = "Demo";
-	
+
 	private final @NonNull OrderRepository orders;
 
 	/**
@@ -50,12 +50,17 @@ class OrderInitializer {
 	 */
 	@EventListener
 	public void init(ApplicationReadyEvent event) {
-
-		if (orders.count() != 0) {
-			return;
+		if (orders.count() == 0) {
+			orders.saveAll(demoOrders());
 		}
+	}
 
-		orders.saveAll(List.of(new Order(TAKE_AWAY, javaChip()), new Order(TAKE_AWAY, cappuchino())));
+	private List<Order> demoOrders() {
+		return List.of(takeAwayOrder(javaChip()), takeAwayOrder(cappuchino()));
+	}
+
+	private Order takeAwayOrder(LineItem... lineItems) {
+		return new Order(TAKE_AWAY, lineItems);
 	}
 
 	private static LineItem javaChip() {

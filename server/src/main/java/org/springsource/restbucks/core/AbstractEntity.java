@@ -17,6 +17,7 @@ package org.springsource.restbucks.core;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.GeneratedValue;
@@ -33,15 +34,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * @author Oliver Gierke
  */
 @MappedSuperclass
+@NoArgsConstructor(force = true)
 @Getter
 @ToString
 @EqualsAndHashCode
 public class AbstractEntity {
 
-	private @Id @GeneratedValue(strategy = GenerationType.AUTO) @JsonIgnore Long id;
+	private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @JsonIgnore Long id;
 	private @Version Long version;
 
-	protected AbstractEntity() {
-		this.id = null;
-	}
 }

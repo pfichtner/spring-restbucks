@@ -15,9 +15,6 @@
  */
 package org.springsource.restbucks.order;
 
-import lombok.Getter;
-import lombok.ToString;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +33,11 @@ import org.springframework.util.Assert;
 import org.springsource.restbucks.core.AbstractAggregateRoot;
 import org.springsource.restbucks.payment.OrderPaid;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Getter;
+import lombok.ToString;
+
 /**
  * An order.
  *
@@ -47,33 +49,45 @@ import org.springsource.restbucks.payment.OrderPaid;
 @Table(name = "RBOrder")
 public class Order extends AbstractAggregateRoot {
 
-	private final Location location;
+	private Location location;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private final LocalDateTime orderedDate;
 	private Status status;
 
-	@OrderColumn //
-	@Column(unique = true) //
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true) //
-	private final List<LineItem> lineItems = new ArrayList<>();
+	@OrderColumn
+	@Column(unique = true)
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<LineItem> lineItems = new ArrayList<>();
 
 	/**
-	 * Creates a new {@link Order} for the given {@link LineItem}s and {@link Location}.
+	 * Creates a new {@link Order} for the given {@link LineItem}s and
+	 * {@link Location}.
 	 * 
 	 * @param lineItems must not be {@literal null}.
 	 * @param location
 	 */
 	public Order(Collection<LineItem> lineItems, Location location) {
+		setLocation(location);
+		this.status = Status.PAYMENT_EXPECTED;
+		setLineItems(lineItems);
+		this.orderedDate = LocalDateTime.now();
+	}
+
+	public void setLineItems(Collection<LineItem> lineItems) {
+		this.lineItems.clear();
+		this.lineItems.addAll(lineItems);
+	}
+
+	public void setLocation(Location location) {
 		Assert.notNull(location, "Location must not be null!");
 		this.location = location;
-		this.status = Status.PAYMENT_EXPECTED;
-		this.lineItems.addAll(lineItems);
-		this.orderedDate = LocalDateTime.now();
 	}
 
 	/**
 	 * Creates a new {@link Order} containing the given {@link LineItem}s.
+	 * 
 	 * @param location must not be {@literal null}.
-	 * @param items must not be {@literal null}.
+	 * @param items    must not be {@literal null}.
 	 */
 	public Order(Location location, LineItem... items) {
 		this(List.of(items), location);
@@ -89,9 +103,10 @@ public class Order extends AbstractAggregateRoot {
 	 * @return will never be {@literal null}.
 	 */
 	public MonetaryAmount getPrice() {
-		return lineItems.stream().//
-				map(LineItem::getPrice).//
-				reduce(MonetaryAmount::add).orElse(Money.of(0.0, "EUR"));
+		return lineItems.stream() //
+				.map(LineItem::getPrice) //
+				.reduce(MonetaryAmount::add) //
+				.orElse(Money.of(0.0, "EUR"));
 	}
 
 	/**
@@ -110,8 +125,8 @@ public class Order extends AbstractAggregateRoot {
 	 */
 	public void markInPreparation() {
 		if (this.status != Status.PAID) {
-			throw new IllegalStateException(
-					String.format("Order must be in state payed to start preparation! Current status: %s", this.status));
+			throw new IllegalStateException(String
+					.format("Order must be in state payed to start preparation! Current status: %s", this.status));
 		}
 		this.status = Status.PREPARING;
 	}
@@ -121,16 +136,16 @@ public class Order extends AbstractAggregateRoot {
 	 */
 	public void markPrepared() {
 		if (this.status != Status.PREPARING) {
-			throw new IllegalStateException(String
-					.format("Cannot mark Order prepared that is currently not preparing! Current status: %s.", this.status));
+			throw new IllegalStateException(String.format(
+					"Cannot mark Order prepared that is currently not preparing! Current status: %s.", this.status));
 		}
 		this.status = Status.READY;
 	}
 
 	public void markTaken() {
 		if (this.status != Status.READY) {
-			throw new IllegalStateException(
-					String.format("Cannot mark Order taken that is currently not paid! Current status: %s.", this.status));
+			throw new IllegalStateException(String
+					.format("Cannot mark Order taken that is currently not paid! Current status: %s.", this.status));
 		}
 		this.status = Status.TAKEN;
 	}

@@ -15,15 +15,15 @@
  */
 package org.springsource.restbucks.order;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
 import javax.money.MonetaryAmount;
 import javax.persistence.Entity;
 
 import org.springsource.restbucks.core.AbstractEntity;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * A line item.
@@ -32,16 +32,16 @@ import org.springsource.restbucks.core.AbstractEntity;
  */
 @Data
 @Entity
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class LineItem extends AbstractEntity {
 
-	private final String name;
-	private final int quantity;
-	private final Milk milk;
-	private final Size size;
-	private final MonetaryAmount price;
+	private String name;
+	private int quantity;
+	private Milk milk;
+	private Size size;
+	private MonetaryAmount price;
 
 	public LineItem(String name, MonetaryAmount price) {
 		this(name, 1, Milk.SEMI, Size.LARGE, price);
