@@ -37,9 +37,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication
 public class Restbucks {
 
-	public static String CURIE_NAMESPACE = "restbucks";
+	public static final String CURIE_NAMESPACE = "restbucks";
 
-	public @Bean CurieProvider curieProvider() {
+	@Bean 
+	public CurieProvider curieProvider() {
 		return new DefaultCurieProvider(CURIE_NAMESPACE, UriTemplate.of("/docs/{rel}.html"));
 	}
 
@@ -48,7 +49,8 @@ public class Restbucks {
 	 *
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		SpringApplication.run(Restbucks.class, args);
 	}
+
 }
