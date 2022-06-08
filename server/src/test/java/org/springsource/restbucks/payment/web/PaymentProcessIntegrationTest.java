@@ -75,7 +75,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void processFirstExistingOrder() throws Exception {
 		var root = accessRootResource();
-		createNewOrder(root);
+		createNewOrder(root, "order.json");
 
 		var orders = discoverOrdersResource(root);
 		var order = accessFirstOrder(orders);
@@ -89,7 +89,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	void processNewOrder() throws Exception {
 		var root = accessRootResource();
 
-		var order = createNewOrder(root);
+		var order = createNewOrder(root, "order.json");
 		payAndTakeReceipt(order);
 	}
 
@@ -100,19 +100,32 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	void cancelOrderBeforePayment() throws Exception {
 		var root = accessRootResource();
 
-		var order = createNewOrder(root);
+		var order = createNewOrder(root, "order.json");
 		cancelOrder(order);
 	}
 
 	/**
-	 * Creates a new {@link Order}, triggers payment and tries to cancel it after
-	 * the payment.
+	 * Creates a new {@link Order} and cancels it right away.
+	 */
+	@Test
+	void cannotCancelInStoreOrderEvenInBeforePaymentState() throws Exception {
+		var root = accessRootResource();
+
+		var order = createNewOrder(root, "order-in-store.json");
+		verifyThatOrderCannotBeCanceled(order);
+	}
+
+	/**
+	 * Access the root resource by referencing the well-known URI. Verifies the orders resource being present.
+	 *
+	 * @return the response for the orders resource
+	 * @throws Exception
 	 */
 	@Test
 	void tryCheatCancelationAfterPayment() throws Exception {
 		var root = accessRootResource();
 
-		var order = createNewOrder(root);
+		var order = createNewOrder(root, "order.json");
 		triggerPayment(order);
 		verifyCancelationIsNotAllowed(order);
 
@@ -129,7 +142,7 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	void verifyNoContent() throws Exception {
 		var root = accessRootResource();
 
-		var order = createNewOrder(root);
+		var order = createNewOrder(root, "order.json");
 		var payment = triggerPayment(order);
 		order = orderOf(payment);
 
@@ -374,5 +387,18 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		mvc.perform(delete(cancellationLink.getHref())).andExpect(status().isNoContent());
 		mvc.perform(get(selfLink.getHref())).andExpect(status().isNotFound());
 	}
+    
+    private void verifyThatOrderCannotBeCanceled(MockHttpServletResponse response) throws Exception {
+        String content = response.getContentAsString();
+        LinkDiscoverer discoverer = getDiscovererFor(response);
+        LOG.info("Faking a cancel request to make sure it's forbidden…");
+        Link orderLink = discoverer.findRequiredLinkWithRel(ORDER_REL, content).expand();
+        
+		mvc.perform(get(orderLink.expand().getHref())). //
+				andExpect(status().isOk()). //
+				andExpect(linkWithRelIsNotPresent(CANCEL_REL));
+        
+        mvc.perform(delete(orderLink.getHref())).andExpect(status().isMethodNotAllowed());
+    }
 
 }

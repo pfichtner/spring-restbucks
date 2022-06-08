@@ -16,6 +16,7 @@
 package org.springsource.restbucks.order;
 
 import static org.springsource.restbucks.core.Currencies.EURO;
+import static org.springsource.restbucks.order.Location.IN_STORE;
 import static org.springsource.restbucks.order.Location.TAKE_AWAY;
 
 import java.util.List;
@@ -56,11 +57,15 @@ class OrderInitializer {
 	}
 
 	private List<Order> demoOrders() {
-		return List.of(takeAwayOrder(javaChip()), takeAwayOrder(cappuchino()));
+		return List.of(takeAwayOrder(javaChip(), cappuchino()), inStoreOrder(javaChip(), cappuchino()));
 	}
 
 	private Order takeAwayOrder(LineItem... lineItems) {
 		return new Order(TAKE_AWAY, lineItems);
+	}
+	
+	private Order inStoreOrder(LineItem... lineItems) {
+		return new Order(IN_STORE, lineItems);
 	}
 
 	private static LineItem javaChip() {

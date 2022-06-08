@@ -26,8 +26,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Oliver Gierke
  */
 @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-public class OrderAlreadyPaid extends RuntimeException {
+public class OrderNotCancable extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
+	
+	public OrderNotCancable(String message) {
+		super(message);
+	}
 
 }

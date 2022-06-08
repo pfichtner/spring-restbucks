@@ -114,15 +114,16 @@ public abstract class AbstractWebIntegrationTest {
 	 * header to retrieve and verify the {@link Order} just created.
 	 *
 	 * @param root
+	 * @param jsonFilename TODO
 	 * @return
 	 * @throws Exception
 	 */
-	protected MockHttpServletResponse createNewOrder(MockHttpServletResponse root) throws Exception {
+	protected MockHttpServletResponse createNewOrder(MockHttpServletResponse root, String jsonFilename) throws Exception {
 		String content = root.getContentAsString();
 
 		Link ordersLink = getDiscovererFor(root).findRequiredLinkWithRel(ORDERS_REL, content);
 
-		ClassPathResource resource = new ClassPathResource("order.json");
+		ClassPathResource resource = new ClassPathResource(jsonFilename);
 		byte[] data = Files.readAllBytes(resource.getFile().toPath());
 
 		var response = mvc.perform(post(ordersLink.expand().getHref()).contentType(APPLICATION_JSON).content(data)) //

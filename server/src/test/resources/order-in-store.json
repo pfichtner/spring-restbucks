@@ -1,0 +1,9 @@
+{ "lineItems" : [ {
+    "name" : "Special Java Chip",
+    "quantity" : 1,
+    "milk" : "Semi",
+    "size" : "Large",
+    "price" : "EUR 5.40"
+  } ],
+  "location" : "In store"
+}

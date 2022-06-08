@@ -15,6 +15,8 @@
  */
 package org.springsource.restbucks.order.web;
 
+import static org.springsource.restbucks.order.Location.TAKE_AWAY;
+
 import org.springframework.data.rest.core.event.AbstractRepositoryEventListener;
 import org.springframework.stereotype.Component;
 import org.springsource.restbucks.order.Order;
@@ -30,7 +32,10 @@ class OrderControllerEventListener extends AbstractRepositoryEventListener<Order
 	@Override
 	protected void onBeforeDelete(Order order) {
 		if (order.isPaid()) {
-			throw new OrderAlreadyPaid();
+			throw new OrderNotCancable("Already paid");
+		} 
+		if (!TAKE_AWAY.equals(order.getLocation())) {
+			throw new OrderNotCancable("Only take away orders can be canceled");
 		}
 	}
 }
