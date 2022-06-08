@@ -388,17 +388,17 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		mvc.perform(get(selfLink.getHref())).andExpect(status().isNotFound());
 	}
     
-    private void verifyThatOrderCannotBeCanceled(MockHttpServletResponse response) throws Exception {
-        String content = response.getContentAsString();
-        LinkDiscoverer discoverer = getDiscovererFor(response);
-        LOG.info("Faking a cancel request to make sure it's forbidden…");
-        Link orderLink = discoverer.findRequiredLinkWithRel(ORDER_REL, content).expand();
-        
+	private void verifyThatOrderCannotBeCanceled(MockHttpServletResponse order) throws Exception {
+		String content = order.getContentAsString();
+		LinkDiscoverer discoverer = getDiscovererFor(order);
+		LOG.info("Faking a cancel request to make sure it's forbidden…");
+		Link orderLink = discoverer.findRequiredLinkWithRel(ORDER_REL, content).expand();
+
 		mvc.perform(get(orderLink.expand().getHref())). //
 				andExpect(status().isOk()). //
 				andExpect(linkWithRelIsNotPresent(CANCEL_REL));
-        
-        mvc.perform(delete(orderLink.getHref())).andExpect(status().isMethodNotAllowed());
-    }
+
+		mvc.perform(delete(orderLink.getHref())).andExpect(status().isMethodNotAllowed());
+	}
 
 }
