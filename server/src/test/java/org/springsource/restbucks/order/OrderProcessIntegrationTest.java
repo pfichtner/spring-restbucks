@@ -124,13 +124,13 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 		return readOrder(orderLink);
 	}
 
-	public void assertThatSelfLinkHasntChanged(MockHttpServletResponse order, Link orderLink,
+	private void assertThatSelfLinkHasntChanged(MockHttpServletResponse order, Link orderLink,
 			MockHttpServletResponse response) throws UnsupportedEncodingException {
 		assertThat(getDiscovererFor(order).findRequiredLinkWithRel(SELF, response.getContentAsString()))
 				.isEqualTo(orderLink);
 	}
 
-	public ResultActions readOrder(Link orderLink) throws Exception {
+	private ResultActions readOrder(Link orderLink) throws Exception {
 		return mvc.perform(get(orderLink.expand().getHref())).andExpect(status().isOk());
 	}
 
