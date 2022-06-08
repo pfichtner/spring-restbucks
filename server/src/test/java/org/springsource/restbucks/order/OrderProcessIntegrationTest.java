@@ -54,7 +54,7 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void canReplaceOrder() throws Exception {
 		var root = accessRootResource();
-		var order = createNewOrder(root, "order.json");
+		var order = createNewOrder(root);
 		replaceOrder(order) //
 				.andExpect(jsonPath("$.lineItems.length()", is(0))) //
 				.andExpect(jsonPath("$.location", is("In store")));
@@ -66,7 +66,7 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	@Test
 	void canUpdateOrder() throws Exception {
 		var root = accessRootResource();
-		var order = createNewOrder(root, "order.json");
+		var order = createNewOrder(root);
 		updateOrder(order) //
 				.andExpect(jsonPath("$.lineItems.length()", is(0))) //
 				.andExpect(jsonPath("$.location", is("In store")));

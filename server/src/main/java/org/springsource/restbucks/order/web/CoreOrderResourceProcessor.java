@@ -18,8 +18,6 @@ package org.springsource.restbucks.order.web;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import static org.springsource.restbucks.order.Location.IN_STORE;
-
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.EntityLinks;
 import org.springframework.hateoas.server.RepresentationModelProcessor;
@@ -49,9 +47,7 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 		if (!order.isPaid()) {
 			var orderLink = typedEntityLinks.linkForItemResource(order);
 			
-			if (!IN_STORE.equals(order.getLocation())) {
-				resource.add(orderLink.withRel(CANCEL_REL));
-			}
+			resource.add(orderLink.withRel(CANCEL_REL));
 			resource.add(orderLink.withRel(UPDATE_REL));
 		}
 
