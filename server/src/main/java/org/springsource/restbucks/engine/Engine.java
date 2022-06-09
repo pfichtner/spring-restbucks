@@ -17,6 +17,8 @@ package org.springsource.restbucks.engine;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.time.Duration;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -46,7 +48,7 @@ class Engine {
 
 	@Async
 	@TransactionalEventListener
-	public void handleOrderPaidEvent(OrderPaid event) throws InterruptedException {
+	public void handleOrderPaidEvent(OrderPaid event) {
 		var order = loadOrder(event.getOrderId());
 		var processingTime = settings.getProcessingTime();
 
@@ -54,7 +56,7 @@ class Engine {
 		order.markInPreparation();
 		order = repository.save(order);
 
-		MILLISECONDS.sleep(processingTime.toMillis());
+		sleep(processingTime);
 
 		order.markPrepared();
 		order = repository.save(order);
@@ -65,6 +67,14 @@ class Engine {
 	private Order loadOrder(long id) {
 		return repository.findById(id) //
 				.orElseThrow(() -> new IllegalStateException(String.format("No order found for id %s!", id)));
+	}
+
+	private static void sleep(Duration processingTime) {
+		try {
+			MILLISECONDS.sleep(processingTime.toMillis());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 }

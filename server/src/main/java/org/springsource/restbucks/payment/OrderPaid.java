@@ -15,6 +15,7 @@
  */
 package org.springsource.restbucks.payment;
 
+import org.springsource.restbucks.core.externalevents.ExternalEvent;
 import org.springsource.restbucks.order.Order;
 
 import lombok.Value;
@@ -26,7 +27,7 @@ import lombok.Value;
  * @author Stéphane Nicoll
  */
 @Value
-public class OrderPaid {
+public class OrderPaid implements ExternalEvent {
 
 	long orderId;
 

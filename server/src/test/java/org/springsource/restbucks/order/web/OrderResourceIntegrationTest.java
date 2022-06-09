@@ -28,6 +28,7 @@ import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.HalLinkRelation;
 import org.springframework.hateoas.mediatype.hal.HalLinkRelation.HalLinkRelationBuilder;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
 import org.springsource.restbucks.Restbucks;
 
@@ -37,6 +38,7 @@ import org.springsource.restbucks.Restbucks;
  * @author Oliver Gierke
  * @author Peter Fichtner
  */
+@DirtiesContext // see comments JmsExternalEventProcessorTest
 class OrderResourceIntegrationTest extends AbstractWebIntegrationTest {
 
 	private static final HalLinkRelationBuilder BUILDER = HalLinkRelation.curieBuilder(Restbucks.CURIE_NAMESPACE);
