@@ -19,9 +19,11 @@ import static java.util.Locale.US;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
@@ -41,6 +43,7 @@ import org.springframework.hateoas.mediatype.hal.HalLinkRelation.HalLinkRelation
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.web.context.WebApplicationContext;
 import org.springsource.restbucks.order.Order;
@@ -57,6 +60,7 @@ public abstract class AbstractWebIntegrationTest {
 	
 	protected static final HalLinkRelationBuilder BUILDER = HalLinkRelation.curieBuilder(Restbucks.CURIE_NAMESPACE);
 	protected static final LinkRelation ORDERS_REL = BUILDER.relation("orders");
+	protected static final LinkRelation PAYMENT_REL = BUILDER.relation("payment");
 
 	@Autowired
 	protected WebApplicationContext context;
@@ -132,6 +136,29 @@ public abstract class AbstractWebIntegrationTest {
 				.andReturn().getResponse();
 
 		return mvc.perform(get(response.getHeader("Location"))).andReturn().getResponse();
+	}
+
+	/**
+	 * Triggers the payment of an {@link Order} by following the {@code payment}
+	 * link and submitting a credit card number to it. Verifies that we get a
+	 * {@code 201 Created} and the response contains an {@code order} link.
+	 *
+	 * @param order
+	 * @return
+	 * @throws Exception
+	 */
+	protected MockHttpServletResponse triggerPayment(MockHttpServletResponse order) throws Exception {
+		String content = order.getContentAsString();
+		LinkDiscoverer discoverer = getDiscovererFor(order);
+		Link paymentLink = discoverer.findRequiredLinkWithRel(PAYMENT_REL, content);
+		assertThat(paymentLink).isNotNull();
+
+		ResultActions action = mvc.perform(put(paymentLink.getHref())//
+				.content("{ \"number\" : \"1234123412341234\" }")//
+				.contentType(APPLICATION_JSON)//
+				.accept(HAL_JSON));
+
+		return action.andExpect(status().isCreated()).andReturn().getResponse();
 	}
 
 	@RequiredArgsConstructor

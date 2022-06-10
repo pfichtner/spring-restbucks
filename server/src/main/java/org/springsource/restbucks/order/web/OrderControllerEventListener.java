@@ -33,5 +33,12 @@ class OrderControllerEventListener extends AbstractRepositoryEventListener<Order
 			throw new OrderNotCancable("Already paid");
 		} 
 	}
-
+	
+	@Override
+	protected void onBeforeSave(Order order) {
+		if (order.isPaid()) {
+			throw new OrderNotUpdateable("Already paid");
+		}
+	}
+	
 }
