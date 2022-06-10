@@ -38,4 +38,12 @@ class OrderControllerEventListener extends AbstractRepositoryEventListener<Order
 			throw new OrderNotCancable("Only take away orders can be canceled");
 		}
 	}
+	
+	@Override
+	protected void onBeforeSave(Order order) {
+		if (order.isPaid()) {
+			throw new OrderNotUpdateable("Already paid");
+		}
+	}
+	
 }
