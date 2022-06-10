@@ -33,4 +33,12 @@ class OrderControllerEventListener extends AbstractRepositoryEventListener<Order
 			throw new OrderAlreadyPaid();
 		}
 	}
+	
+	@Override
+	protected void onBeforeSave(Order order) {
+		if (order.isPaid()) {
+			throw new OrderAlreadyPaid();
+		}
+	}
+	
 }

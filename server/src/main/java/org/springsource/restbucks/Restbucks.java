@@ -61,7 +61,7 @@ public class Restbucks {
 	public static void main(String... args) {
 		SpringApplication.run(Restbucks.class, args);
 	}
-
+	
 	@Bean
 	public FilterRegistrationBean<CorsFilter> simpleCorsFilter() {
 		FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(

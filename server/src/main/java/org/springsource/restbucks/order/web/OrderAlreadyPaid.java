@@ -20,8 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Exception being thrown in case an {@link Order} has already been paid and a
- * payment is reattempted.
+ * Exception being thrown in case an {@link Order} has already been paid. 
  * 
  * @author Oliver Gierke
  */
