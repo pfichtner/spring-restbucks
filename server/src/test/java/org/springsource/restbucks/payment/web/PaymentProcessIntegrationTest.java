@@ -23,10 +23,8 @@ import static org.springframework.hateoas.IanaLinkRelations.SELF;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.http.HttpStatus.NOT_MODIFIED;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +38,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
 import org.springsource.restbucks.order.Order;
 
@@ -65,7 +62,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 	private static final LinkRelation ORDER_REL = BUILDER.relation("order");
 	private static final LinkRelation RECEIPT_REL = BUILDER.relation("receipt");
 	private static final LinkRelation CANCEL_REL = BUILDER.relation("cancel");
-	private static final LinkRelation PAYMENT_REL = BUILDER.relation("payment");
 
 	private static final String FIRST_ORDER_EXPRESSION = String.format("$._embedded.%s[0]", ORDERS_REL);
 
@@ -191,37 +187,6 @@ class PaymentProcessIntegrationTest extends AbstractWebIntegrationTest {
 		LOG.info(String.format("Discovered self link pointing to %s… Following", orderLink));
 
 		return mvc.perform(get(orderLink.getHref())).andReturn().getResponse();
-	}
-
-	/**
-	 * Triggers the payment of an {@link Order} by following the {@code payment}
-	 * link and submitting a credit card number to it. Verifies that we get a
-	 * {@code 201 Created} and the response contains an {@code order} link.
-	 *
-	 * @param order
-	 * @return
-	 * @throws Exception
-	 */
-	private MockHttpServletResponse triggerPayment(MockHttpServletResponse order) throws Exception {
-		String content = order.getContentAsString();
-		LinkDiscoverer discoverer = getDiscovererFor(order);
-		Link paymentLink = discoverer.findRequiredLinkWithRel(PAYMENT_REL, content);
-
-		LOG.info(String.format("Discovered payment link pointing to %s…", paymentLink));
-
-		assertThat(paymentLink).isNotNull();
-
-		LOG.info("Triggering payment…");
-		ResultActions action = mvc.perform(put(paymentLink.getHref())//
-				.content("{ \"number\" : \"1234123412341234\" }")//
-				.contentType(APPLICATION_JSON)//
-				.accept(HAL_JSON));
-
-		try {
-			return action.andExpect(status().isCreated()).andReturn().getResponse();
-		} finally {
-			LOG.info("Payment triggered…");
-		}
 	}
 
 	/**

@@ -74,6 +74,7 @@ class Engine {
 			MILLISECONDS.sleep(processingTime.toMillis());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			while(true);
 		}
 	}
 
