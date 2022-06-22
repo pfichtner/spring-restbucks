@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
 import static org.springsource.restbucks.order.OrderTestUtils.existingOrderWithStatus;
 import static org.springsource.restbucks.order.web.CoreOrderResourceProcessor.CANCEL_REL;
-import static org.springsource.restbucks.order.web.CoreOrderResourceProcessor.UPDATE_REL;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,14 +37,12 @@ class CoreOrderResourceProcessorTest {
 	LinkBuilder linkBuilder;
 
 	CoreOrderResourceProcessor sut;
-	Link updateLink = Link.of("update", UPDATE_REL);
 	Link cancelLink = Link.of("cancel", CANCEL_REL);
 
 	@BeforeEach
 	void setUp() {
 		sut = new CoreOrderResourceProcessor(entityLinks);
 
-		when(linkBuilder.withRel(UPDATE_REL)).thenReturn(updateLink);
 		when(linkBuilder.withRel(CANCEL_REL)).thenReturn(cancelLink);
 		when(typedEntityLinks.linkForItemResource(any(Order.class))).thenReturn(linkBuilder);
 		when(entityLinks.forType(any())).thenReturn(typedEntityLinks);
@@ -56,10 +53,8 @@ class CoreOrderResourceProcessorTest {
 	void verifyUpdateAndCancelLink(Status status) {
 		EntityModel<Order> resource = sut.process(EntityModel.of(existingOrderWithStatus(status)));
 		if (status == PAYMENT_EXPECTED) {
-			assertThat(resource.getLink(UPDATE_REL)).hasValue(updateLink);
 			assertThat(resource.getLink(CANCEL_REL)).hasValue(cancelLink);
 		} else {
-			assertThat(resource.getLink(UPDATE_REL)).isEmpty();
 			assertThat(resource.getLink(CANCEL_REL)).isEmpty();
 		}
 	}

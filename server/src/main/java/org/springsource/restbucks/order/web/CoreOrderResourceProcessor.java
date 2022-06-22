@@ -35,7 +35,6 @@ import org.springsource.restbucks.order.Order;
 class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityModel<Order>> {
 
 	public static final String CANCEL_REL = "cancel";
-	public static final String UPDATE_REL = "update";
 
 	private final @NonNull EntityLinks entityLinks;
 
@@ -46,9 +45,7 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 
 		if (!order.isPaid()) {
 			var orderLink = typedEntityLinks.linkForItemResource(order);
-			
 			resource.add(orderLink.withRel(CANCEL_REL));
-			resource.add(orderLink.withRel(UPDATE_REL));
 		}
 
 		return resource;
