@@ -40,7 +40,7 @@ class PaymentServiceIntegrationTest {
 
 	@Test
 	void marksOrderAsPaid() {
-		Order order = orders.save(createOrder());
+		Order order = orders.save(createExampleOrder());
 		CreditCard creditCard = creditCards.save(creditCard());
 		CreditCardPayment payment = paymentService.pay(order, creditCard.getNumber());
 
@@ -50,7 +50,7 @@ class PaymentServiceIntegrationTest {
 
 	@Test
 	void marksOrderAsTakenIfReceiptIsTaken() {
-		Order order = orders.save(createOrder());
+		Order order = orders.save(createExampleOrder());
 		order.markPaid();
 		order.markInPreparation();
 		order.markPrepared();
