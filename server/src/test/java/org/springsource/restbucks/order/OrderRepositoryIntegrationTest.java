@@ -18,7 +18,7 @@ package org.springsource.restbucks.order;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springsource.restbucks.order.Order.Status.PAID;
 import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
-import static org.springsource.restbucks.order.OrderTestUtils.createOrder;
+import static org.springsource.restbucks.order.OrderTestUtils.createExampleOrder;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ class OrderRepositoryIntegrationTest {
 	@Test
 	void createsNewOrder() {
 		Long countBeforeInsert = repository.count();
-		var order = repository.save(createOrder());
+		var order = repository.save(createExampleOrder());
 		var result = repository.findAll();
 
 		assertThat(result).hasSize(countBeforeInsert.intValue() + 1);
@@ -49,7 +49,7 @@ class OrderRepositoryIntegrationTest {
 		int paidCountBeforeInsert = repository.findByStatus(PAID).size();
 		int paymentCountBeforeInsert = repository.findByStatus(PAYMENT_EXPECTED).size();
 
-		var order = repository.save(createOrder());
+		var order = repository.save(createExampleOrder());
 		assertThat(repository.findByStatus(PAYMENT_EXPECTED)).hasSize(paymentCountBeforeInsert + 1);
 		assertThat(repository.findByStatus(PAID)).hasSize(paidCountBeforeInsert);
 
