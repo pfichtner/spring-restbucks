@@ -40,7 +40,7 @@ class PaymentRepositoryIntegrationTest {
 	@Test
 	void savesCreditCardPayment() {
 		CreditCard creditCard = creditCards.save(creditCard());
-		Order order = orders.save(createOrder());
+		Order order = orders.save(createExampleOrder());
 
 		CreditCardPayment payment = payments.save(new CreditCardPayment(creditCard, order));
 
