@@ -72,7 +72,7 @@ public class OrderTestUtils {
 		ReflectionUtils.setField(field, target, value);
 	}
 
-	public static Order createOrder() {
+	public static Order createExampleOrder() {
 		return new Order(TAKE_AWAY, new LineItem("English breakfast", Money.of(2.70, EURO)));
 	}
 
