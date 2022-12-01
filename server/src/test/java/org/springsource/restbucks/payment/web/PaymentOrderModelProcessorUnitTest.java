@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
 import static org.springsource.restbucks.order.Order.Status.READY;
 import static org.springsource.restbucks.order.OrderTestUtils.createExistingOrder;
-import static org.springsource.restbucks.order.OrderTestUtils.createPreparedOrder;
 import static org.springsource.restbucks.order.OrderTestUtils.existingOrderWithStatus;
 import static org.springsource.restbucks.payment.web.PaymentLinks.PAYMENT_REL;
 import static org.springsource.restbucks.payment.web.PaymentLinks.RECEIPT_REL;
@@ -77,8 +76,8 @@ class PaymentOrderModelProcessorUnitTest {
 	}
 
 	@Test
-	void addsReceiptLinkForPaidOrder() {
-		EntityModel<Order> resource = sut.process(EntityModel.of(createPreparedOrder()));
+	void addsReceiptLinkForPreparedOrder() {
+		EntityModel<Order> resource = sut.process(EntityModel.of(existingOrderWithStatus(READY)));
 		assertThat(resource.getLink(RECEIPT_REL)).hasValue(receiptLink);
 	}
 
