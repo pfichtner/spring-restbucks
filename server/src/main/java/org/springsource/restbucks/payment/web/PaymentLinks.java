@@ -15,6 +15,9 @@
  */
 package org.springsource.restbucks.payment.web;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.afford;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.mediatype.hal.HalLinkRelation;
@@ -63,7 +66,8 @@ class PaymentLinks {
 	 * @return
 	 */
 	Link getPaymentLink(Order order) {
-		return orderLinks.linkForItemResource(order).slash(PAYMENT).withRel(PAYMENT_REL);
+		var affordance = afford(methodOn(PaymentController.class).submitPayment(order, null));
+		return orderLinks.linkForItemResource(order).slash(PAYMENT).withRel(PAYMENT_REL).andAffordance(affordance);
 	}
 
 	/**
