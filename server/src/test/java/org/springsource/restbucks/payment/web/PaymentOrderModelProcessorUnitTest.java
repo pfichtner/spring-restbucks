@@ -75,8 +75,7 @@ class PaymentOrderModelProcessorUnitTest {
 	void addsPaymentLinkForFreshOrder() {
 		Order order = createExistingOrder();
 		EntityModel<Order> resource = sut.process(EntityModel.of(order));
-		assertThat(resource.getLink(PAYMENT_REL)).hasValue(
-				paymentLink.andAffordance(afford(methodOn(PaymentController.class).submitPayment(order, null))));
+		assertThat(resource.getLink(PAYMENT_REL)).hasValue(paymentLink);
 	}
 
 	@Test
