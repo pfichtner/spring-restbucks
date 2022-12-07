@@ -15,18 +15,28 @@
  */
 package org.springsource.restbucks.payment.web;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.afford;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.function.Function;
+
+import org.springframework.core.io.Resource;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.RepresentationModelProcessor;
 import org.springframework.stereotype.Component;
 import org.springsource.restbucks.order.Order;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * {@link ResourceProcessor} to enrich {@link Order} {@link Resource}s with links to the {@link PaymentController}.
+ * {@link ResourceProcessor} to enrich {@link Order} {@link Resource}s with
+ * links to the {@link PaymentController}.
  * 
  * @author Oliver Gierke
+ * @author Peter Fichtner
  */
 @Component
 @RequiredArgsConstructor
@@ -35,17 +45,19 @@ class PaymentOrderModelProcessor implements RepresentationModelProcessor<EntityM
 	private final @NonNull PaymentLinks paymentLinks;
 
 	@Override
-	public EntityModel<Order> process(EntityModel<Order> resource) {
-		var order = resource.getContent();
+	public EntityModel<Order> process(EntityModel<Order> model) {
+		var order = model.getContent();
 
-		if (!order.isPaid()) {
-			resource.add(paymentLinks.getPaymentLink(order));
-		}
+		return model //
+				.addIf(!order.isPaid(), () -> paymentLinks.getPaymentLink(order)) //
+				.mapLinkIf(!order.isPaid(), IanaLinkRelations.SELF, addPayAffordance(order)) //
+				.addIf(order.isReady(), () -> paymentLinks.getReceiptLink(order)) //
+		;
 
-		if (order.isReady()) {
-			resource.add(paymentLinks.getReceiptLink(order));
-		}
-
-		return resource;
 	}
+
+	private Function<Link, Link> addPayAffordance(Order order) {
+		return link -> link.andAffordance(afford(methodOn(PaymentController.class).submitPayment(order, null)));
+	}
+
 }
