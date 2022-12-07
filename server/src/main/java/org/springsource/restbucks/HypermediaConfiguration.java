@@ -18,6 +18,9 @@ package org.springsource.restbucks;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.mediatype.hal.forms.HalFormsConfiguration;
+import org.springframework.hateoas.mediatype.hal.forms.HalFormsOptions;
+import org.springsource.restbucks.order.Location;
+import org.springsource.restbucks.order.Order;
 import org.springsource.restbucks.payment.CreditCardNumber;
 
 @Configuration
@@ -25,7 +28,11 @@ class HypermediaConfiguration {
 
 	@Bean
 	HalFormsConfiguration halFormsConfiguration() {
-		return new HalFormsConfiguration().withPattern(CreditCardNumber.class, CreditCardNumber.REGEX);
+		return new HalFormsConfiguration() //
+				.withPattern(CreditCardNumber.class, CreditCardNumber.REGEX) //
+				.withOptions(Order.class, "location", it -> HalFormsOptions.inline(Location.values())
+						.withSelectedValue(Location.TAKE_AWAY).withMaxItems(1L)) //
+		;
 	}
 
 }
