@@ -18,8 +18,6 @@ package org.springsource.restbucks.payment.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.afford;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
 import static org.springsource.restbucks.order.Order.Status.READY;
 import static org.springsource.restbucks.order.OrderTestUtils.createExistingOrder;
@@ -75,8 +73,7 @@ class PaymentOrderModelProcessorUnitTest {
 	void addsPaymentLinkForFreshOrder() {
 		Order order = createExistingOrder();
 		EntityModel<Order> resource = sut.process(EntityModel.of(order));
-		assertThat(resource.getLink(PAYMENT_REL)).hasValue(
-				paymentLink.andAffordance(afford(methodOn(PaymentController.class).submitPayment(order, null))));
+		assertThat(resource.getLink(PAYMENT_REL)).hasValue(paymentLink);
 	}
 
 	@Test
