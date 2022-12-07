@@ -15,15 +15,7 @@
  */
 package org.springsource.restbucks.order.web;
 
-import static java.util.stream.Collectors.toList;
-import static org.springframework.http.HttpMethod.DELETE;
-
-import java.util.function.Function;
-
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mediatype.Affordances;
 import org.springframework.hateoas.server.EntityLinks;
 import org.springframework.hateoas.server.RepresentationModelProcessor;
 import org.springframework.stereotype.Component;
@@ -57,15 +49,8 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 		var orderLink = typedEntityLinks.linkForItemResource(order);
 		return model //
 				.addIf(!order.isPaid(), () -> orderLink.withRel(CANCEL_REL)) //
-				.mapLinkIf(!order.isPaid(), IanaLinkRelations.SELF,
-						addCancelAffordance(typedEntityLinks.linkToItemResource(order))) //
 				.addIf(!order.isPaid(), () -> orderLink.withRel(UPDATE_REL)) //
 		;
-	}
-
-	private Function<Link, Link> addCancelAffordance(Link orderLink) {
-		return link -> link.andAffordances(Affordances.of(orderLink).afford(DELETE).withTarget(orderLink)
-				.withName(CANCEL_REL).build().stream().collect(toList()));
 	}
 
 }
