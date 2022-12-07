@@ -2,7 +2,7 @@ package org.springsource.restbucks.core.externalevents;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springsource.restbucks.order.OrderTestUtils.createOrder;
+import static org.springsource.restbucks.order.OrderTestUtils.createExistingOrder;
 
 import java.io.IOException;
 import java.util.List;
@@ -97,7 +97,7 @@ class JmsExternalEventProcessorTest {
 	}
 
 	void givenAnOrder() {
-		order = orders.save(createOrder());
+		order = orders.save(createExistingOrder());
 	}
 
 	private void whenOrderIsPaid() {
