@@ -15,20 +15,30 @@
  */
 package org.springsource.restbucks.order.web;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpMethod.DELETE;
+
+import java.util.function.Function;
 
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mediatype.Affordances;
 import org.springframework.hateoas.server.EntityLinks;
 import org.springframework.hateoas.server.RepresentationModelProcessor;
 import org.springframework.stereotype.Component;
 import org.springsource.restbucks.order.Order;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * {@link ResourceProcessor} implementation to add links to the {@link Order} representation that indicate that the
- * Order can be updated or cancelled as long as it has not been paid yet.
+ * {@link ResourceProcessor} implementation to add links to the {@link Order}
+ * representation that indicate that the Order can be updated or cancelled as
+ * long as it has not been paid yet.
  *
  * @author Oliver Gierke
+ * @author Peter Fichtner
  */
 @Component
 @RequiredArgsConstructor
@@ -40,17 +50,22 @@ class CoreOrderResourceProcessor implements RepresentationModelProcessor<EntityM
 	private final @NonNull EntityLinks entityLinks;
 
 	@Override
-	public EntityModel<Order> process(EntityModel<Order> resource) {
+	public EntityModel<Order> process(EntityModel<Order> model) {
 		var typedEntityLinks = entityLinks.forType(Order::getId);
-		var order = resource.getContent();
+		var order = model.getContent();
 
-		if (!order.isPaid()) {
-			var orderLink = typedEntityLinks.linkForItemResource(order);
-			
-			resource.add(orderLink.withRel(CANCEL_REL));
-			resource.add(orderLink.withRel(UPDATE_REL));
-		}
-
-		return resource;
+		var orderLink = typedEntityLinks.linkForItemResource(order);
+		return model //
+				.addIf(!order.isPaid(), () -> orderLink.withRel(CANCEL_REL)) //
+				.mapLinkIf(!order.isPaid(), IanaLinkRelations.SELF,
+						addCancelAffordance(typedEntityLinks.linkToItemResource(order))) //
+				.addIf(!order.isPaid(), () -> orderLink.withRel(UPDATE_REL)) //
+		;
 	}
+
+	private Function<Link, Link> addCancelAffordance(Link orderLink) {
+		return link -> link.andAffordances(Affordances.of(orderLink).afford(DELETE).withTarget(orderLink)
+				.withName(CANCEL_REL).build().stream().collect(toList()));
+	}
+
 }
