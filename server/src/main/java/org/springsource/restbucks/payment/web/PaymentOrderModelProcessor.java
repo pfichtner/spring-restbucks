@@ -15,15 +15,8 @@
  */
 package org.springsource.restbucks.payment.web;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.afford;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
-import java.util.function.Function;
-
 import org.springframework.core.io.Resource;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.IanaLinkRelations;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.RepresentationModelProcessor;
 import org.springframework.stereotype.Component;
 import org.springsource.restbucks.order.Order;
@@ -50,14 +43,9 @@ class PaymentOrderModelProcessor implements RepresentationModelProcessor<EntityM
 
 		return model //
 				.addIf(!order.isPaid(), () -> paymentLinks.getPaymentLink(order)) //
-				.mapLinkIf(!order.isPaid(), IanaLinkRelations.SELF, addPayAffordance(order)) //
 				.addIf(order.isReady(), () -> paymentLinks.getReceiptLink(order)) //
 		;
 
-	}
-
-	private Function<Link, Link> addPayAffordance(Order order) {
-		return link -> link.andAffordance(afford(methodOn(PaymentController.class).submitPayment(order, null)));
 	}
 
 }
