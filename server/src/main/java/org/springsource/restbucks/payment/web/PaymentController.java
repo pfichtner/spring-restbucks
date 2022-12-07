@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 package org.springsource.restbucks.payment.web;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import javax.money.MonetaryAmount;
 
@@ -45,6 +41,12 @@ import org.springsource.restbucks.payment.Payment.Receipt;
 import org.springsource.restbucks.payment.PaymentService;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 /**
  * Spring MVC controller to handle payments for an {@link Order}.
@@ -130,14 +132,10 @@ class PaymentController {
 		var orderLinks = paymentLinks.getOrderLinks();
 		var order = receipt.getOrder();
 
-		var model = EntityModel.of(receipt) //
-				.add(orderLinks.linkToItemResource(order));
-
-		if (!order.isTaken()) {
-			model.add(orderLinks.linkForItemResource(order).slash("receipt").withSelfRel());
-		}
-
-		return ResponseEntity.ok(model);
+		return ResponseEntity.ok(EntityModel.of(receipt) //
+				.add(orderLinks.linkToItemResource(order)) //
+				.addIf(!order.isTaken(),
+						() -> linkTo(methodOn(PaymentController.class).showReceipt(order)).withSelfRel()));
 	}
 
 	/**
