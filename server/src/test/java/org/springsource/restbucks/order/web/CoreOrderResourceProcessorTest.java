@@ -51,14 +51,14 @@ class CoreOrderResourceProcessorTest {
 
 	@ParameterizedTest
 	@EnumSource(value = Status.class, mode = EXCLUDE, names = "PAYMENT_EXPECTED")
-	void whenStateIsNotPaymentExcpected_cancelLinksAreAbsent(Status status) {
+	void whenStateIsNotPaymentExcpected_cancelLinkIsAbsent(Status status) {
 		EntityModel<Order> resource = orderEntityModel(status);
 		assertThat(resource.getLink(CANCEL_REL)).isEmpty();
 	}
 
 	@ParameterizedTest
 	@EnumSource(value = Status.class, mode = INCLUDE, names = "PAYMENT_EXPECTED")
-	void whenStateIsPaymentExcpected_cancelLinksArePresent(Status status) {
+	void whenStateIsPaymentExcpected_cancelLinkIsPresent(Status status) {
 		EntityModel<Order> resource = orderEntityModel(status);
 		assertThat(resource.getLink(CANCEL_REL)).hasValue(cancelLink);
 	}
