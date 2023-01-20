@@ -1,9 +1,10 @@
 package org.springsource.restbucks.order.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springsource.restbucks.order.Order.Status.PAYMENT_EXPECTED;
 import static org.springsource.restbucks.order.OrderTestUtils.existingOrderWithStatus;
 import static org.springsource.restbucks.order.web.CoreOrderResourceProcessor.CANCEL_REL;
 
@@ -49,14 +50,21 @@ class CoreOrderResourceProcessorTest {
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = Status.class)
-	void verifyUpdateAndCancelLink(Status status) {
-		EntityModel<Order> resource = sut.process(EntityModel.of(existingOrderWithStatus(status)));
-		if (status == PAYMENT_EXPECTED) {
-			assertThat(resource.getLink(CANCEL_REL)).hasValue(cancelLink);
-		} else {
-			assertThat(resource.getLink(CANCEL_REL)).isEmpty();
-		}
+	@EnumSource(value = Status.class, mode = EXCLUDE, names = "PAYMENT_EXPECTED")
+	void whenStateIsNotPaymentExcpected_paymentAndCancelLinksAreAbsent(Status status) {
+		EntityModel<Order> resource = orderEntityModel(status);
+		assertThat(resource.getLink(CANCEL_REL)).isEmpty();
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = Status.class, mode = INCLUDE, names = "PAYMENT_EXPECTED")
+	void whenStateIsPaymentExcpected_paymentAndCancelLinksArePresent(Status status) {
+		EntityModel<Order> resource = orderEntityModel(status);
+		assertThat(resource.getLink(CANCEL_REL)).hasValue(cancelLink);
+	}
+
+	private EntityModel<Order> orderEntityModel(Status status) {
+		return sut.process(EntityModel.of(existingOrderWithStatus(status)));
 	}
 
 }
