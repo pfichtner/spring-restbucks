@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springsource.restbucks.AbstractWebIntegrationTest;
@@ -47,6 +48,8 @@ import com.jayway.jsonpath.JsonPath;
  * @author Peter Fichtner
  */
 class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
+
+	private static final LinkRelation UPDATE_REL = BUILDER.relation("update");
 
 	/**
 	 * Creates a new {@link Order} and replaces that one.
@@ -73,6 +76,20 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	}
 
 	/**
+	 * Verifies if an payed order has no update link.
+	 */
+	@Test
+	void payedOrderHasNoUpdateLink() throws Exception {
+		var root = accessRootResource();
+		var order = createNewOrder(root);
+		triggerPayment(order);
+		var orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, order.getContentAsString());
+		var refetchedOrder = readOrder(orderLink).andReturn().getResponse();
+		assertThat(getDiscovererFor(refetchedOrder).findLinkWithRel(UPDATE_REL,
+				refetchedOrder.getContentAsString())).isNotPresent();
+	}
+
+	/**
 	 * Tries to update an already paid order.
 	 */
 	@Test
@@ -80,8 +97,7 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 		var root = accessRootResource();
 		var order = createNewOrder(root);
 		triggerPayment(order);
-		String content = order.getContentAsString();
-		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
+		var orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, order.getContentAsString());
 		mvc.perform(patch(orderLink.expand().getHref()) //
 				.contentType(APPLICATION_JSON) //
 				.accept(HAL_JSON).content("{}".getBytes())) //
@@ -97,26 +113,25 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 */
 	private ResultActions updateOrder(MockHttpServletResponse order) throws Exception {
 		String content = order.getContentAsString();
+		var oldSelfLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
+		var updateLink = getDiscovererFor(order).findRequiredLinkWithRel(UPDATE_REL, content);
 
 		String location = JsonPath.parse(content).read(JsonPath.compile("$.location"), String.class).toString();
-
-		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
-
 		byte[] data;
 
 		data = ("{ \"lineItems\": [] }").getBytes();
-		mvc.perform(patch(orderLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON).content(data)) //
+		mvc.perform(patch(updateLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON).content(data)) //
 				.andExpect(status().isOk()) //
 				.andReturn().getResponse();
 
 		data = ("{ \"location\": \"" + switchLocation(location) + "\" }").getBytes();
 		var response = mvc
-				.perform(patch(orderLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON)
+				.perform(patch(updateLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON)
 						.content(data)) //
 				.andExpect(status().isOk()) //
 				.andReturn().getResponse();
-		assertThatSelfLinkHasntChanged(order, orderLink, response);
-		return readOrder(orderLink);
+		assertThatSelfLinkHasntChanged(order, oldSelfLink, response);
+		return readOrder(updateLink);
 	}
 
 	/**
@@ -127,17 +142,18 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 * @throws Exception
 	 */
 	private ResultActions replaceOrder(MockHttpServletResponse order) throws Exception {
-		String content = order.getContentAsString();
-
-		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
+		var content = order.getContentAsString();
+		var oldSelfLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
+		var updateLink = getDiscovererFor(order).findRequiredLinkWithRel(UPDATE_REL, content);
 
 		byte[] data = "{ \"lineItems\": [], \"location\": \"IN_STORE\" }".getBytes();
 		var response = mvc
-				.perform(put(orderLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON).content(data)) //
+				.perform(
+						put(updateLink.expand().getHref()).contentType(APPLICATION_JSON).accept(HAL_JSON).content(data)) //
 				.andExpect(status().isOk()) //
 				.andReturn().getResponse();
-		assertThatSelfLinkHasntChanged(order, orderLink, response);
-		return readOrder(orderLink);
+		assertThatSelfLinkHasntChanged(order, oldSelfLink, response);
+		return readOrder(updateLink);
 	}
 
 	private void assertThatSelfLinkHasntChanged(MockHttpServletResponse order, Link orderLink,
