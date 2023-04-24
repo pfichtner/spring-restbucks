@@ -75,15 +75,10 @@ class OrderProcessIntegrationTest extends AbstractWebIntegrationTest {
 	 */
 	@Test
 	void cannotUpdatePayedOrder() throws Exception {
-		var root = accessRootResource();
-		var order = createNewOrder(root);
-		triggerPayment(order);
-		String content = order.getContentAsString();
-		Link orderLink = getDiscovererFor(order).findRequiredLinkWithRel(SELF, content);
-		mvc.perform(patch(orderLink.expand().getHref()) //
-				.contentType(APPLICATION_JSON) //
-				.accept(HAL_JSON).content("{}".getBytes())) //
-				.andExpect(status().isMethodNotAllowed());
+		fail("not implemented");
+		triggerPayment(null);
+		/** @see updateOrder() or replaceOrder() */
+		mvc.perform(patch(""));
 	}
 
 	/**
