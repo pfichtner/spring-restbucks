@@ -23,8 +23,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springsource.restbucks.order.Order;
+import org.springsource.restbucks.order.OrderPaid;
 import org.springsource.restbucks.order.OrderRepository;
-import org.springsource.restbucks.payment.OrderPaid;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
