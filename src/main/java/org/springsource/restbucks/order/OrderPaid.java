@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springsource.restbucks.payment;
+package org.springsource.restbucks.order;
 
 import org.springsource.restbucks.core.externalevents.ExternalEvent;
-import org.springsource.restbucks.order.Order;
 
 import lombok.Value;
 

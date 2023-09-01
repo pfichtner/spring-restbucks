@@ -81,7 +81,7 @@ class JmsExternalEventProcessorTest {
 		// #1 where introduced for that, too)
 		applicationEventMulticaster.removeApplicationListeners(
 				l -> ("public" + " " + "void" + " org.springsource.restbucks.engine.Engine" + "."
-						+ "handleOrderPaidEvent(" + org.springsource.restbucks.payment.OrderPaid.class.getName() + ")")
+						+ "handleOrderPaidEvent(" + org.springsource.restbucks.order.OrderPaid.class.getName() + ")")
 								.equals(l.toString()));
 	}
 
