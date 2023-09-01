@@ -31,7 +31,6 @@ import javax.persistence.Table;
 import org.javamoney.moneta.Money;
 import org.springframework.util.Assert;
 import org.springsource.restbucks.core.AbstractAggregateRoot;
-import org.springsource.restbucks.payment.OrderPaid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
